@@ -1,0 +1,87 @@
+{% extends "customer/base_customer.html" %}
+
+{% block title %}Feedback & Reviews – Peacock{% endblock %}
+
+{% block customer_content %}
+<div class="mb-4">
+    <h1 class="h3 font-serif fw-bold mb-1">Feedback & Reviews</h1>
+    <p class="text-muted small mb-0">Share your reception celebration experience with the Peacock community.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="peacock-card p-4">
+            <h5 class="h6 fw-bold font-serif mb-3">Submit Wedding Review</h5>
+            
+            {% if completed_bookings %}
+            <form method="POST" action="/customer/feedback/submit">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Select Completed Wedding Booking *</label>
+                    <select name="booking_id" class="form-select" required>
+                        {% for cb in completed_bookings %}
+                        <option value="{{ cb.booking_id }}">{{ cb.booking_reference }} – {{ cb.venue.venue_name }} ({{ cb.event_date }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Overall Rating *</label>
+                    <select name="rating" class="form-select" required>
+                        <option value="5">⭐⭐⭐⭐⭐ (5 Stars - Exceptional)</option>
+                        <option value="4">⭐⭐⭐⭐ (4 Stars - Very Good)</option>
+                        <option value="3">⭐⭐⭐ (3 Stars - Satisfactory)</option>
+                        <option value="2">⭐⭐ (2 Stars - Needs Improvement)</option>
+                        <option value="1">⭐ (1 Star - Poor)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Review Title *</label>
+                    <input type="text" name="review_title" class="form-control" required placeholder="e.g. Unforgettable Wedding at The Grand Peacock!">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold">Comments & Experience *</label>
+                    <textarea name="comments" class="form-control" rows="4" required placeholder="Describe your experience with the venue, catering, and service..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-peacock w-100 py-2">
+                    <i class="bi bi-star"></i> Submit Feedback
+                </button>
+            </form>
+            {% else %}
+            <div class="alert alert-info small mb-0">
+                <i class="bi bi-info-circle me-1"></i> Reviews can only be submitted for completed wedding receptions. Once your celebration event is completed, you can leave a review here.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="peacock-card p-4">
+            <h5 class="h6 fw-bold font-serif mb-3">Your Previous Reviews</h5>
+            {% if feedbacks %}
+                {% for f in feedbacks %}
+                <div class="p-3 bg-light rounded-3 mb-3 border">
+                    <div class="d-flex text-warning mb-1">
+                        {% for _ in range(f.rating) %}<i class="bi bi-star-fill me-1"></i>{% endfor %}
+                    </div>
+                    <strong class="d-block font-serif">{{ f.review_title }}</strong>
+                    <p class="small text-muted mb-2">"{{ f.comments }}"</p>
+                    <small class="text-muted d-block">{{ f.created_at.strftime("%B %d, %Y") }}</small>
+
+                    {% if f.admin_response %}
+                    <div class="mt-2 p-2 bg-white rounded border-start border-warning border-3 small">
+                        <strong class="text-warning-emphasis">Peacock Response:</strong>
+                        <p class="mb-0 text-muted">{{ f.admin_response }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+            <p class="text-muted small">You haven't submitted any feedback yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

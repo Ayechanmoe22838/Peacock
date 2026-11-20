@@ -1,0 +1,118 @@
+{% extends "customer/base_customer.html" %}
+
+{% block title %}Digital Invitation – Peacock{% endblock %}
+
+{% block customer_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Digital Wedding Invitation Suite</h1>
+        <p class="text-muted small mb-0">Design, customize, and generate shareable digital invitations with real-time RSVP capture.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Form Customizer -->
+    <div class="col-lg-6">
+        <div class="peacock-card p-4">
+            <h5 class="h6 fw-bold font-serif mb-3">Customize Invitation Details</h5>
+            
+            <form method="POST" action="/customer/invitations/save">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Choose Invitation Design Template (13 Exclusive Designs)</label>
+                    <select name="template_name" class="form-select" id="templateSelect" onchange="previewTemplateCard(this)">
+                        {% for tmpl in templates %}
+                        <option value="{{ tmpl.id }}" data-img="{{ tmpl.image }}" {% if invitation and invitation.template_name == tmpl.id %}selected{% elif not invitation and loop.first %}selected{% endif %}>
+                            {{ tmpl.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Couple Names / Title *</label>
+                    <input type="text" name="custom_title" class="form-control" required 
+                           value="{{ invitation.custom_title if invitation else current_user.full_name ~ ' & Partner' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Invitation Message *</label>
+                    <textarea name="custom_message" class="form-control" rows="4" required>{{ invitation.custom_message if invitation else 'Together with our families, we joyfully invite you to celebrate our wedding reception.' }}</textarea>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Wedding Date</label>
+                        <input type="date" name="wedding_date" class="form-control" required 
+                               value="{{ invitation.wedding_date if invitation else (booking.event_date if booking else '') }}">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold">Start Time</label>
+                        <input type="time" name="start_time" class="form-control" required 
+                               value="{{ invitation.start_time.strftime('%H:%M') if invitation else (booking.start_time.strftime('%H:%M') if booking else '17:00') }}">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold">Venue Display Name & Address</label>
+                    <input type="text" name="venue_name" class="form-control mb-2" required 
+                           value="{{ invitation.venue_name if invitation else (booking.venue.venue_name if booking else '') }}">
+                    <input type="text" name="venue_address" class="form-control" required 
+                           value="{{ invitation.venue_address if invitation else (booking.venue.address if booking else '') }}">
+                </div>
+
+                <button type="submit" class="btn btn-peacock w-100 py-2">
+                    <i class="bi bi-save"></i> Save & Generate Invitation Link
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Live Preview & Share Card -->
+    <div class="col-lg-6">
+        {% if invitation %}
+        <div class="peacock-card p-4 text-center">
+            <span class="badge bg-success-subtle text-success border border-success mb-3 px-3 py-1">Shareable Link Ready</span>
+            
+            <h4 class="h5 font-serif fw-bold mb-2">{{ invitation.custom_title }}</h4>
+            <p class="text-muted small mb-3">Total Page Views: <strong>{{ invitation.views_count }}</strong></p>
+
+            <div class="input-group mb-4">
+                <input type="text" id="shareUrlInput" class="form-control bg-light" readonly 
+                       value="{{ request.base_url }}invitation/{{ invitation.shareable_token }}">
+                <button class="btn btn-peacock" type="button" onclick="copyToClipboard(document.getElementById('shareUrlInput').value)">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+            </div>
+
+            <div class="p-4 bg-light rounded-4 border mb-4">
+                <img id="cardPreviewImg" src="{{ template_image }}" alt="Invitation Preview" class="img-fluid rounded-3 shadow mb-3" style="max-height: 280px; object-fit: cover;">
+                <p class="fst-italic text-secondary small mb-0">"{{ invitation.custom_message }}"</p>
+            </div>
+
+            <a href="/invitation/{{ invitation.shareable_token }}" target="_blank" class="btn btn-outline-dark w-100">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Preview Guest Invitation Page
+            </a>
+        </div>
+        {% else %}
+        <div class="peacock-card p-5 text-center bg-light">
+            <i class="bi bi-envelope-paper text-muted fs-1 mb-3 d-block"></i>
+            <h5 class="fw-bold">No Invitation Generated Yet</h5>
+            <p class="text-muted small">Fill out the customization form on the left to generate your personalized shareable digital invitation.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function previewTemplateCard(selectEl) {
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    const imgSrc = selectedOption.getAttribute('data-img');
+    const previewImg = document.getElementById('cardPreviewImg');
+    if (previewImg && imgSrc) {
+        previewImg.src = imgSrc;
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "customer/base_customer.html" %}
+
+{% block title %}Seating Planner – Peacock{% endblock %}
+
+{% block customer_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Reception Seating Planner</h1>
+        <p class="text-muted small mb-0">Organize reception tables, set seating capacities, and assign guests seamlessly.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-peacock btn-sm" data-bs-toggle="modal" data-bs-target="#addTableModal">
+            <i class="bi bi-plus-circle"></i> Add New Table
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Unassigned Guests Sidebar -->
+    <div class="col-lg-4">
+        <div class="peacock-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="h6 fw-bold mb-0 font-serif">Unassigned Guests</h5>
+                <span class="badge bg-warning text-dark">{{ unassigned_guests|length }} Waiting</span>
+            </div>
+
+            {% if unassigned_guests %}
+            <div class="list-group list-group-flush" style="max-height: 480px; overflow-y: auto;">
+                {% for g in unassigned_guests %}
+                <div class="list-group-item px-2 py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong class="small d-block">{{ g.guest_name }}</strong>
+                        <span class="badge bg-light text-dark border" style="font-size: 0.7rem;">{{ g.category }}</span>
+                    </div>
+                    <!-- Quick assign dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            Seat
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            {% for tbl in tables %}
+                            <li>
+                                <form method="POST" action="/customer/seating/assign">
+                                    <input type="hidden" name="table_id" value="{{ tbl.table_id }}">
+                                    <input type="hidden" name="guest_id" value="{{ g.guest_id }}">
+                                    <button type="submit" class="dropdown-item small" {% if tbl.assignments|length >= tbl.capacity %}disabled{% endif %}>
+                                        {{ tbl.table_name }} ({{ tbl.assignments|length }}/{{ tbl.capacity }})
+                                    </button>
+                                </form>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-muted small bg-light rounded-3">
+                <i class="bi bi-check2-all text-success fs-3 d-block mb-1"></i>
+                All registered guests have been seated!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tables Grid -->
+    <div class="col-lg-8">
+        <div class="row g-4">
+            {% if tables %}
+                {% for tbl in tables %}
+                <div class="col-md-6">
+                    <div class="peacock-card p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="badge bg-light text-dark border mb-1">Table #{{ tbl.table_number }}</span>
+                                <h5 class="h6 fw-bold mb-0 font-serif">{{ tbl.table_name }}</h5>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge {% if tbl.assignments|length >= tbl.capacity %}bg-danger{% else %}bg-success{% endif %}">
+                                    {{ tbl.assignments|length }} / {{ tbl.capacity }} Seats
+                                </span>
+                                <form method="POST" action="/customer/seating/tables/{{ tbl.table_id }}/delete" class="d-inline" onsubmit="return confirm('Delete this table?');">
+                                    <button type="submit" class="btn btn-link text-danger p-0 ms-2" title="Delete Table">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Table Visual Node -->
+                        <div class="table-node my-3">
+                            <i class="bi bi-disc text-warning fs-1"></i>
+                            <span class="small fw-bold text-muted">Table {{ tbl.table_number }}</span>
+                        </div>
+
+                        <!-- Seated Guest Chips -->
+                        <h6 class="small fw-bold text-muted mb-2">Seated Guests:</h6>
+                        {% if tbl.assignments %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for assign in tbl.assignments %}
+                            <div class="badge bg-light text-dark border p-2 d-flex align-items-center gap-1 shadow-sm">
+                                <i class="bi bi-person-check-fill text-success"></i>
+                                <span>{{ assign.guest.guest_name }}</span>
+                                <form method="POST" action="/customer/seating/unassign/{{ assign.assignment_id }}" class="d-inline ms-1">
+                                    <button type="submit" class="btn-close" style="font-size: 0.55rem;" title="Remove"></button>
+                                </form>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted small fst-italic mb-0">No guests seated at this table yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="peacock-card p-5 text-center bg-white">
+                        <i class="bi bi-diagram-3 text-muted fs-1 mb-3 d-block"></i>
+                        <h5 class="fw-bold">No Tables Created</h5>
+                        <p class="text-muted small">Create your first reception table to begin arranging your wedding guests.</p>
+                        <button type="button" class="btn btn-peacock" data-bs-toggle="modal" data-bs-target="#addTableModal">
+                            Add First Table
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Table Modal -->
+<div class="modal fade" id="addTableModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/customer/seating/tables/add">
+                <div class="modal-header">
+                    <h5 class="modal-title font-serif">Add Reception Table</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Table Number *</label>
+                        <input type="number" name="table_number" class="form-control" required value="{{ (tables|length) + 1 }}" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Table Name / Label *</label>
+                        <input type="text" name="table_name" class="form-control" required placeholder="e.g. VIP Table, Bride Family, High School Friends">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Seat Capacity *</label>
+                        <input type="number" name="capacity" class="form-control" required value="10" min="2" max="30">
+                        <small class="text-muted">Maximum number of guests allowed at this table.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-peacock">Create Table</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

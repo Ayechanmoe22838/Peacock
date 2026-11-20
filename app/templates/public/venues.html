@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Wedding Venues – Peacock{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light-subtle border-bottom">
+    <div class="container text-center">
+        <h1 class="display-5 fw-bold font-serif">Wedding Venues</h1>
+        <p class="text-muted">Explore grand ballrooms, scenic lakeside pavilions, and heritage estates across Myanmar.</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <!-- Search & Filter Bar -->
+    <div class="peacock-card p-4 mb-5 bg-white">
+        <form method="GET" action="/venues" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Search Venue</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" value="{{ query_q or '' }}" class="form-control" placeholder="Venue name or keyword...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Location / City</label>
+                <select name="city" class="form-select">
+                    <option value="">All Locations</option>
+                    {% for c in cities %}
+                    <option value="{{ c }}" {% if query_city == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Guest Capacity</label>
+                <select name="capacity" class="form-select">
+                    <option value="">Any Capacity</option>
+                    <option value="200" {% if query_capacity == '200' %}selected{% endif %}>Up to 200 Guests</option>
+                    <option value="400" {% if query_capacity == '400' %}selected{% endif %}>Up to 400 Guests</option>
+                    <option value="600" {% if query_capacity == '600' %}selected{% endif %}>Up to 600 Guests</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-peacock w-100">
+                    Filter Venues
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Venues Grid -->
+    <div class="row g-4">
+        {% if venues %}
+            {% for venue in venues %}
+            <div class="col-lg-4 col-md-6">
+                <div class="peacock-card h-100 d-flex flex-column">
+                    <div class="position-relative">
+                        <img src="{{ venue.images[0].image_url if venue.images else '/static/images/luxury_ballroom.jpg' }}" 
+                             alt="{{ venue.venue_name }}" 
+                             class="w-100" 
+                             style="height: 240px; object-fit: cover;">
+                        <span class="position-absolute top-0 end-0 m-3 badge bg-dark bg-opacity-75 px-3 py-2">
+                            <i class="bi bi-geo-alt text-warning"></i> {{ venue.city }}
+                        </span>
+                    </div>
+                    <div class="p-4 d-flex flex-column flex-grow-1">
+                        <h4 class="h5 mb-2 font-serif">{{ venue.venue_name }}</h4>
+                        <p class="text-muted small mb-3 flex-grow-1">{{ venue.description[:120] }}...</p>
+                        
+                        <div class="bg-light p-3 rounded mb-3 small">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted"><i class="bi bi-people me-1"></i> Capacity:</span>
+                                <span class="fw-semibold">{{ venue.capacity }} Guests</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted"><i class="bi bi-tag me-1"></i> Base Rate:</span>
+                                <span class="fw-bold text-dark">{{ "{:,.0f}".format(venue.base_price) }} Ks</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-auto">
+                            <a href="/venues/{{ venue.venue_id }}" class="btn btn-peacock-outline w-50">
+                                View Details
+                            </a>
+                            <a href="/customer/booking/wizard?venue_id={{ venue.venue_id }}" class="btn btn-peacock w-50">
+                                Book Venue
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <div class="p-5 bg-white rounded-4 border">
+                    <i class="bi bi-building-exclamation fs-1 text-muted mb-3 d-block"></i>
+                    <h4 class="fw-bold">No Venues Found</h4>
+                    <p class="text-muted">No wedding venues match your current search criteria. Try resetting your filter.</p>
+                    <a href="/venues" class="btn btn-peacock">View All Venues</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

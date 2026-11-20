@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us – Peacock{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light-subtle border-bottom">
+    <div class="container text-center">
+        <h1 class="display-5 fw-bold font-serif">Get in Touch</h1>
+        <p class="text-muted">Our wedding concierge team is here to assist with venues, packages, and custom reception requirements.</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-5">
+        <div class="col-lg-6">
+            <div class="peacock-card p-4 p-md-5">
+                <h3 class="h4 font-serif mb-4">Send Us a Message</h3>
+                <form onsubmit="event.preventDefault(); showToast('Thank you! Our wedding advisor will call you shortly.', 'success'); this.reset();">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Your Full Name</label>
+                        <input type="text" class="form-control" required placeholder="e.g. Aye Chan Moe">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Email Address</label>
+                        <input type="email" class="form-control" required placeholder="e.g. customer@peacock.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Phone Number</label>
+                        <input type="tel" class="form-control" required placeholder="09xxxxxxxxx">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Message or Wedding Inquiries</label>
+                        <textarea class="form-control" rows="4" required placeholder="Tell us about your wedding date, estimated guest count, or venue preferences..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-peacock w-100 py-2">
+                        <i class="bi bi-send"></i> Submit Inquiry
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="peacock-card p-4 p-md-5 mb-4">
+                <h3 class="h4 font-serif mb-4">Office & Support Info</h3>
+                <ul class="list-unstyled mb-4">
+                    <li class="d-flex align-items-start gap-3 mb-3">
+                        <i class="bi bi-geo-alt-fill text-warning fs-5"></i>
+                        <div>
+                            <strong>Headquarters</strong>
+                            <p class="text-muted small mb-0">Peacock Tower, No. 12 Bogyoke Road, Bahan Township, Yangon, Myanmar</p>
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start gap-3 mb-3">
+                        <i class="bi bi-telephone-fill text-warning fs-5"></i>
+                        <div>
+                            <strong>Wedding Hotline</strong>
+                            <p class="text-muted small mb-0">+95 9 450 012 345 / +95 9 790 098 765</p>
+                        </div>
+                    </li>
+                    <li class="d-flex align-items-start gap-3 mb-3">
+                        <i class="bi bi-envelope-fill text-warning fs-5"></i>
+                        <div>
+                            <strong>Email Inquiries</strong>
+                            <p class="text-muted small mb-0">concierge@peacockweddings.com</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="kpay-payment-card">
+                    <div class="kpay-header">
+                        <span class="fw-bold text-primary"><i class="bi bi-wallet2 me-1"></i> Official KBZPay Verification</span>
+                        <span class="badge bg-primary">Verified Merchant</span>
+                    </div>
+                    <p class="small text-muted mb-1">Account Name: <strong>PEACOCK WEDDING SERVICES</strong></p>
+                    <p class="small text-muted mb-0">Pay Number: <strong>09450012345</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

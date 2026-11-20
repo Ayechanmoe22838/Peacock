@@ -1,0 +1,64 @@
+{% extends "customer/base_customer.html" %}
+
+{% block title %}My Profile – Peacock{% endblock %}
+
+{% block customer_content %}
+<div class="mb-4">
+    <h1 class="h3 font-serif fw-bold mb-1">Account & Profile Settings</h1>
+    <p class="text-muted small mb-0">Update your contact details and security credentials.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="peacock-card p-4">
+            <h5 class="h6 fw-bold font-serif mb-3">Personal & Contact Information</h5>
+            
+            <form method="POST" action="/customer/profile/update">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Full Name *</label>
+                    <input type="text" name="full_name" class="form-control" required value="{{ current_user.full_name }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Email Address (Read-only)</label>
+                    <input type="email" class="form-control bg-light" readonly value="{{ current_user.email }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Phone Number *</label>
+                    <input type="tel" name="phone" class="form-control" required value="{{ current_user.plain_phone }}">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold">Home / Mailing Address</label>
+                    <textarea name="address" class="form-control" rows="2">{{ current_user.address or '' }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-peacock">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="peacock-card p-4">
+            <h5 class="h6 fw-bold font-serif mb-3">Change Account Password</h5>
+            
+            <form method="POST" action="/customer/profile/change-password">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Current Password *</label>
+                    <input type="password" name="current_password" class="form-control" required placeholder="••••••••">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">New Password * (Min 6 chars)</label>
+                    <input type="password" name="new_password" class="form-control" required placeholder="••••••••">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold">Confirm New Password *</label>
+                    <input type="password" name="confirm_new_password" class="form-control" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-outline-dark">
+                    Update Password
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

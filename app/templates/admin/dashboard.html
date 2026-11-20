@@ -1,0 +1,264 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Dashboard – Peacock Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Administrator Dashboard</h1>
+        <p class="text-muted small mb-0">Platform performance metrics, booking activities, and revenue overview.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/admin/reports" class="btn btn-outline-dark btn-sm">
+            <i class="bi bi-file-earmark-bar-graph"></i> Export Reports
+        </a>
+        <a href="/admin/bookings" class="btn btn-peacock btn-sm">
+            <i class="bi bi-journal-bookmark"></i> Review Bookings
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="peacock-card p-3 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small fw-semibold">Total Revenue (MMK)</span>
+                <div class="rounded-circle bg-success-subtle text-success p-2">
+                    <i class="bi bi-cash-stack fs-5"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-1 font-serif text-dark">{{ "{:,.0f}".format(total_revenue) }} Ks</h3>
+            <small class="text-success fw-semibold"><i class="bi bi-check-circle"></i> Verified Payments</small>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="peacock-card p-3 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small fw-semibold">Pending Bookings</span>
+                <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2">
+                    <i class="bi bi-clock-history fs-5"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-1 font-serif text-warning-emphasis">{{ pending_bookings_count }}</h3>
+            <small class="text-muted">Awaiting admin review</small>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="peacock-card p-3 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small fw-semibold">Confirmed Bookings</span>
+                <div class="rounded-circle bg-primary-subtle text-primary p-2">
+                    <i class="bi bi-calendar-check fs-5"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-1 font-serif text-primary">{{ confirmed_bookings_count }}</h3>
+            <small class="text-muted">Total: {{ total_bookings }} requests</small>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="peacock-card p-3 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small fw-semibold">Registered Customers</span>
+                <div class="rounded-circle bg-info-subtle text-info-emphasis p-2">
+                    <i class="bi bi-people fs-5"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-1 font-serif text-dark">{{ total_customers }}</h3>
+            <small class="text-muted">Across {{ total_venues }} active venues</small>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Visualization Row -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="peacock-card p-4 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="h6 fw-bold font-serif mb-0">Monthly Booking & Revenue Trend</h5>
+                <span class="badge bg-light text-dark border">FY 2026</span>
+            </div>
+            <div style="height: 280px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="peacock-card p-4 bg-white h-100">
+            <h5 class="h6 fw-bold font-serif mb-3">Booking Status Distribution</h5>
+            <div style="height: 240px; position: relative;">
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div class="text-center mt-3 small text-muted">
+                Confirmed: {{ confirmed_bookings_count }} | Pending: {{ pending_bookings_count }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Approvals & Recent Bookings -->
+<div class="row g-4">
+    <!-- Pending Approvals Priority Box -->
+    <div class="col-lg-6">
+        <div class="peacock-card overflow-hidden bg-white h-100">
+            <div class="card-header bg-warning-subtle d-flex justify-content-between align-items-center py-3">
+                <h6 class="mb-0 fw-bold text-warning-emphasis">
+                    <i class="bi bi-exclamation-circle me-1"></i> Pending Booking Requests
+                </h6>
+                <a href="/admin/bookings?status=Pending" class="small fw-semibold text-warning-emphasis">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <tbody>
+                        {% if pending_bookings %}
+                            {% for pb in pending_bookings %}
+                            <tr>
+                                <td>
+                                    <strong class="d-block">{{ pb.booking_reference }}</strong>
+                                    <small class="text-muted">{{ pb.customer.full_name }}</small>
+                                </td>
+                                <td>
+                                    <span>{{ pb.venue.venue_name }}</span>
+                                    <small class="text-muted d-block">{{ pb.event_date.strftime("%b %d, %Y") }}</small>
+                                </td>
+                                <td class="fw-semibold">{{ "{:,.0f}".format(pb.total_cost) }} Ks</td>
+                                <td class="text-end">
+                                    <a href="/admin/bookings/{{ pb.booking_id }}" class="btn btn-sm btn-peacock">
+                                        Review
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    No pending booking approvals. All requests processed!
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments Queue -->
+    <div class="col-lg-6">
+        <div class="peacock-card overflow-hidden bg-white h-100">
+            <div class="card-header bg-primary-subtle d-flex justify-content-between align-items-center py-3">
+                <h6 class="mb-0 fw-bold text-primary">
+                    <i class="bi bi-credit-card me-1"></i> Pending Payment Verifications
+                </h6>
+                <a href="/admin/payments" class="small fw-semibold text-primary">View Queue</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <tbody>
+                        {% if pending_payments %}
+                            {% for pp in pending_payments %}
+                            <tr>
+                                <td>
+                                    <strong class="d-block">{{ pp.payment_reference }}</strong>
+                                    <small class="text-muted">{{ pp.booking.booking_reference }}</small>
+                                </td>
+                                <td>
+                                    <span>{{ pp.payment_method }}</span>
+                                    <small class="text-muted d-block">{{ pp.transaction_reference }}</small>
+                                </td>
+                                <td class="fw-bold text-success">{{ "{:,.0f}".format(pp.amount) }} Ks</td>
+                                <td class="text-end">
+                                    <a href="/admin/payments" class="btn btn-sm btn-outline-primary">
+                                        Verify Receipt
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    No pending payments to verify.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    window.peacockCharts = window.peacockCharts || [];
+
+    // Detect current theme colors
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const textColor = isDark ? '#ffffff' : '#000000';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)';
+
+    // 1. Monthly Revenue Chart
+    const ctxRev = document.getElementById('revenueChart').getContext('2d');
+    const revChart = new Chart(ctxRev, {
+        type: 'bar',
+        data: {
+            labels: ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+                label: 'Revenue (MMK Millions)',
+                data: [3.2, 4.5, 6.0, 7.8, 6.4, 9.5, 12.0],
+                backgroundColor: '#C5A76B',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    ticks: { color: textColor },
+                    grid: { color: gridColor }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: textColor },
+                    grid: { color: gridColor }
+                }
+            }
+        }
+    });
+    window.peacockCharts.push(revChart);
+
+    // 2. Status Distribution Chart
+    const ctxStatus = document.getElementById('statusChart').getContext('2d');
+    const statusChart = new Chart(ctxStatus, {
+        type: 'doughnut',
+        data: {
+            labels: ['Confirmed', 'Pending', 'Completed', 'Cancelled'],
+            datasets: [{
+                data: [{{ confirmed_bookings_count }}, {{ pending_bookings_count }}, 1, 0],
+                backgroundColor: ['#006B45', '#C5A76B', '#063B78', '#DC2626']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: textColor }
+                }
+            }
+        }
+    });
+    window.peacockCharts.push(statusChart);
+});
+</script>
+{% endblock %}

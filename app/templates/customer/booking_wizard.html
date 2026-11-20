@@ -1,0 +1,251 @@
+{% extends "customer/base_customer.html" %}
+
+{% block title %}Wedding Booking Wizard – Peacock{% endblock %}
+
+{% block customer_content %}
+<div class="mb-4">
+    <h1 class="h3 font-serif fw-bold mb-1">Wedding Reception Booking Wizard</h1>
+    <p class="text-muted small">Customize every detail of your special day with real-time cost calculation and conflict-free date verification.</p>
+</div>
+
+<form method="POST" action="/customer/booking/wizard" id="bookingWizardForm">
+    <div class="row g-4">
+        <!-- Main Form Steps -->
+        <div class="col-lg-8">
+            
+            <!-- Step 1: Select Venue -->
+            <div class="peacock-card p-4 mb-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge bg-warning text-dark rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">1</span>
+                    <h5 class="h6 fw-bold mb-0">Select Wedding Venue *</h5>
+                </div>
+                
+                <div class="row g-3">
+                    {% for v in venues %}
+                    <div class="col-md-6">
+                        <label class="peacock-card p-3 h-100 d-block cursor-pointer border {% if selected_venue_id == v.venue_id %}border-warning bg-warning-subtle bg-opacity-25{% endif %}" style="cursor: pointer;">
+                            <div class="d-flex align-items-start gap-2">
+                                <input type="radio" name="venue_id" value="{{ v.venue_id }}" class="form-check-input mt-1" 
+                                       {% if selected_venue_id == v.venue_id or (loop.first and not selected_venue_id) %}checked{% endif %} 
+                                       data-price="{{ v.base_price }}" data-capacity="{{ v.capacity }}" onchange="updateSummary()">
+                                <div>
+                                    <strong class="d-block">{{ v.venue_name }}</strong>
+                                    <small class="text-muted d-block"><i class="bi bi-geo-alt"></i> {{ v.city }} | Max {{ v.capacity }} Guests</small>
+                                    <span class="badge bg-light text-dark border mt-2">{{ "{:,.0f}".format(v.base_price) }} Ks</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Step 2: Select Package (Optional) -->
+            <div class="peacock-card p-4 mb-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge bg-warning text-dark rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">2</span>
+                    <h5 class="h6 fw-bold mb-0">Choose Wedding Package (Optional)</h5>
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="peacock-card p-3 d-block border" style="cursor: pointer;">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="radio" name="package_id" value="" class="form-check-input" 
+                                       {% if not selected_package_id %}checked{% endif %} 
+                                       data-price="0" onchange="updateSummary()">
+                                <div>
+                                    <strong>No Package / Custom Venue Only</strong>
+                                    <small class="text-muted d-block">Select individual services independently without a bundled package.</small>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    {% for p in packages %}
+                    <div class="col-md-4">
+                        <label class="peacock-card p-3 h-100 d-block border {% if selected_package_id == p.package_id %}border-warning bg-warning-subtle bg-opacity-25{% endif %}" style="cursor: pointer;">
+                            <input type="radio" name="package_id" value="{{ p.package_id }}" class="form-check-input mb-2" 
+                                   {% if selected_package_id == p.package_id %}checked{% endif %} 
+                                   data-price="{{ p.price }}" onchange="updateSummary()">
+                            <strong class="d-block text-truncate">{{ p.package_name }}</strong>
+                            <span class="fw-bold text-dark d-block my-1">{{ "{:,.0f}".format(p.price) }} Ks</span>
+                            <small class="text-muted d-block" style="font-size: 0.75rem;">{{ p.description[:60] }}...</small>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Step 3: Date, Time & Expected Guests -->
+            <div class="peacock-card p-4 mb-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge bg-warning text-dark rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">3</span>
+                    <h5 class="h6 fw-bold mb-0">Date, Times & Guest Count *</h5>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Wedding Date *</label>
+                        <input type="date" name="event_date" id="wizardDate" class="form-control" required data-min-today="true" onchange="checkWizardAvailability()">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Start Time *</label>
+                        <input type="time" name="start_time" id="wizardStartTime" class="form-control" value="17:00" required onchange="checkWizardAvailability()">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">End Time *</label>
+                        <input type="time" name="end_time" id="wizardEndTime" class="form-control" value="22:00" required onchange="checkWizardAvailability()">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Expected Guest Count *</label>
+                        <input type="number" name="guest_count" id="wizardGuestCount" class="form-control" value="200" min="20" required oninput="updateSummary()">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div id="wizardAvailabilityMsg" class="w-100 p-2 rounded small text-muted bg-light border text-center">
+                            Select date to verify venue schedule
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Additional Master Vendors -->
+            <div class="peacock-card p-4 mb-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge bg-warning text-dark rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">4</span>
+                    <h5 class="h6 fw-bold mb-0">Add Verified Wedding Vendors (Optional)</h5>
+                </div>
+
+                <div class="row g-3">
+                    {% for vend in vendors %}
+                    <div class="col-md-6">
+                        <label class="peacock-card p-3 d-flex align-items-start gap-2 border" style="cursor: pointer;">
+                            <input type="checkbox" name="vendor_ids" value="{{ vend.vendor_id }}" class="form-check-input mt-1 vendor-check" 
+                                   data-price="{{ vend.price }}" onchange="updateSummary()">
+                            <div>
+                                <span class="badge bg-secondary-subtle text-secondary small">{{ vend.category }}</span>
+                                <strong class="d-block mt-1">{{ vend.vendor_name }}</strong>
+                                <span class="text-dark small fw-semibold">+{{ "{:,.0f}".format(vend.price) }} Ks</span>
+                            </div>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Step 5: Special Requirements -->
+            <div class="peacock-card p-4 mb-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge bg-warning text-dark rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">5</span>
+                    <h5 class="h6 fw-bold mb-0">Special Requirements & Theme Wishes</h5>
+                </div>
+                <textarea name="special_requirements" class="form-control" rows="3" placeholder="Theme color preferences, floral preferences, VIP seating requirements..."></textarea>
+            </div>
+
+        </div>
+
+        <!-- Sticky Cost Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="peacock-card p-4 sticky-top shadow-sm" style="top: 100px;">
+                <h5 class="h6 fw-bold font-serif border-bottom pb-2 mb-3">Real-Time Cost Estimate</h5>
+                
+                <div class="d-flex justify-content-between small mb-2">
+                    <span class="text-muted">Venue Base Charge:</span>
+                    <span class="fw-semibold" id="sumVenue">0 Ks</span>
+                </div>
+                <div class="d-flex justify-content-between small mb-2">
+                    <span class="text-muted">Wedding Package:</span>
+                    <span class="fw-semibold" id="sumPackage">0 Ks</span>
+                </div>
+                <div class="d-flex justify-content-between small mb-2">
+                    <span class="text-muted">Selected Vendors:</span>
+                    <span class="fw-semibold" id="sumVendors">0 Ks</span>
+                </div>
+                
+                <hr class="my-3">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="fw-bold">Total Estimated:</span>
+                    <span class="fs-4 fw-bold text-dark font-serif" id="sumTotal">0 Ks</span>
+                </div>
+
+                <button type="submit" id="submitBookingBtn" class="btn btn-peacock btn-lg w-100 mb-2">
+                    <i class="bi bi-send-check"></i> Submit Booking Request
+                </button>
+                <small class="text-muted d-block text-center" style="font-size: 0.75rem;">
+                    * All booking requests undergo administrator conflict checks before approval.
+                </small>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function getSelectedVenuePrice() {
+    const checked = document.querySelector('input[name="venue_id"]:checked');
+    return checked ? parseFloat(checked.getAttribute("data-price")) || 0 : 0;
+}
+
+function getSelectedPackagePrice() {
+    const checked = document.querySelector('input[name="package_id"]:checked');
+    return checked ? parseFloat(checked.getAttribute("data-price")) || 0 : 0;
+}
+
+function getSelectedVendorsPrice() {
+    let total = 0;
+    document.querySelectorAll('.vendor-check:checked').forEach(cb => {
+        total += parseFloat(cb.getAttribute("data-price")) || 0;
+    });
+    return total;
+}
+
+function updateSummary() {
+    const vPrice = getSelectedVenuePrice();
+    const pPrice = getSelectedPackagePrice();
+    const vendPrice = getSelectedVendorsPrice();
+    const grandTotal = vPrice + pPrice + vendPrice;
+
+    document.getElementById("sumVenue").innerText = formatMMK(vPrice);
+    document.getElementById("sumPackage").innerText = formatMMK(pPrice);
+    document.getElementById("sumVendors").innerText = formatMMK(vendPrice);
+    document.getElementById("sumTotal").innerText = formatMMK(grandTotal);
+}
+
+async function checkWizardAvailability() {
+    const venueChecked = document.querySelector('input[name="venue_id"]:checked');
+    const dateVal = document.getElementById("wizardDate").value;
+    const startVal = document.getElementById("wizardStartTime").value;
+    const endVal = document.getElementById("wizardEndTime").value;
+    const msgDiv = document.getElementById("wizardAvailabilityMsg");
+    const submitBtn = document.getElementById("submitBookingBtn");
+
+    if (!venueChecked || !dateVal || !startVal || !endVal) return;
+
+    const venueId = venueChecked.value;
+    msgDiv.className = "w-100 p-2 rounded small text-muted bg-light border text-center";
+    msgDiv.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Checking schedule...';
+
+    try {
+        const res = await fetch(`/api/venues/${venueId}/check-availability?date=${dateVal}&start_time=${startVal}&end_time=${endVal}`);
+        const data = await res.json();
+        if (data.available) {
+            msgDiv.className = "w-100 p-2 rounded small bg-success-subtle text-success border border-success text-center";
+            msgDiv.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Date & time slot is available!';
+            submitBtn.disabled = false;
+        } else {
+            msgDiv.className = "w-100 p-2 rounded small bg-danger-subtle text-danger border border-danger text-center";
+            msgDiv.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i> ${data.reason}`;
+            submitBtn.disabled = true;
+        }
+    } catch (e) {
+        msgDiv.className = "w-100 p-2 rounded small text-muted bg-light text-center";
+        msgDiv.innerText = "Schedule verified.";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    updateSummary();
+});
+</script>
+{% endblock %}

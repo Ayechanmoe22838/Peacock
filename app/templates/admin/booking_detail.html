@@ -1,0 +1,141 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Booking {{ booking.booking_reference }} – Peacock Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/admin/bookings">Bookings</a></li>
+                <li class="breadcrumb-item active">{{ booking.booking_reference }}</li>
+            </ol>
+        </nav>
+        <h1 class="h3 font-serif fw-bold mb-0">Booking Details: {{ booking.booking_reference }}</h1>
+    </div>
+    <div class="d-flex gap-2">
+        <span class="badge-status-{{ booking.booking_status.lower().replace(' ', '-') }} fs-6">
+            {{ booking.booking_status }}
+        </span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Main Booking Summary -->
+    <div class="col-lg-8">
+        <div class="peacock-card p-4 bg-white mb-4">
+            <h5 class="h6 fw-bold font-serif mb-3">Event & Venue Particulars</h5>
+            <div class="row g-3 bg-light p-3 rounded mb-3">
+                <div class="col-md-6">
+                    <span class="text-muted small d-block">Venue Name:</span>
+                    <strong>{{ booking.venue.venue_name }}</strong>
+                    <small class="d-block text-muted">{{ booking.venue.address }}, {{ booking.venue.city }}</small>
+                </div>
+                <div class="col-md-3">
+                    <span class="text-muted small d-block">Wedding Date:</span>
+                    <strong>{{ booking.event_date.strftime("%B %d, %Y") }}</strong>
+                </div>
+                <div class="col-md-3">
+                    <span class="text-muted small d-block">Event Times:</span>
+                    <strong>{{ booking.start_time.strftime("%I:%M %p") }} - {{ booking.end_time.strftime("%I:%M %p") }}</strong>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted small d-block">Customer:</span>
+                    <strong>{{ booking.customer.full_name }}</strong> ({{ booking.customer.phone }})
+                    <small class="d-block text-muted">{{ booking.customer.email }}</small>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted small d-block">Guest Count:</span>
+                    <strong>{{ booking.guest_count }} Expected Attendees</strong>
+                </div>
+            </div>
+
+            <!-- Invoice Itemization -->
+            <h6 class="fw-bold mb-2 font-serif">Financial Ledger (MMK)</h6>
+            <div class="table-responsive">
+                <table class="table table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Charge Description</th>
+                            <th class="text-end" style="width: 150px;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Venue Base Rate: {{ booking.venue.venue_name }}</td>
+                            <td class="text-end">{{ "{:,.0f}".format(booking.venue_cost) }} Ks</td>
+                        </tr>
+                        {% if booking.package %}
+                        <tr>
+                            <td>Wedding Package: {{ booking.package.package_name }}</td>
+                            <td class="text-end">{{ "{:,.0f}".format(booking.package_cost) }} Ks</td>
+                        </tr>
+                        {% endif %}
+                        {% for bv in booking.booking_vendors %}
+                        <tr>
+                            <td>Vendor: {{ bv.vendor.vendor_name }} ({{ bv.vendor.category }})</td>
+                            <td class="text-end">{{ "{:,.0f}".format(bv.price_agreed) }} Ks</td>
+                        </tr>
+                        {% endfor %}
+                        {% for bm in booking.booking_menus %}
+                        <tr>
+                            <td>Catering: {{ bm.menu.name }} ({{ bm.quantity }} portions)</td>
+                            <td class="text-end">{{ "{:,.0f}".format(bm.total_price) }} Ks</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="table-light fw-bold">
+                            <td class="text-end">Total Contract Cost:</td>
+                            <td class="text-end fs-6">{{ "{:,.0f}".format(booking.total_cost) }} Ks</td>
+                        </tr>
+                        <tr class="text-success fw-bold">
+                            <td class="text-end">Total Verified Payments:</td>
+                            <td class="text-end">{{ "{:,.0f}".format(booking.paid_amount) }} Ks</td>
+                        </tr>
+                        <tr class="table-warning text-danger fw-bold">
+                            <td class="text-end">Outstanding Balance Due:</td>
+                            <td class="text-end fs-6">{{ "{:,.0f}".format(booking.balance_amount) }} Ks</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {% if booking.special_requirements %}
+            <div class="mt-3">
+                <strong class="small text-muted d-block">Customer Special Notes:</strong>
+                <p class="small mb-0">{{ booking.special_requirements }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Administrative Action Panel -->
+    <div class="col-lg-4">
+        <div class="peacock-card p-4 bg-white mb-4">
+            <h5 class="h6 fw-bold font-serif mb-3">Update Status Lifecycle</h5>
+            
+            <form method="POST" action="/admin/bookings/{{ booking.booking_id }}/status">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">New Status</label>
+                    <select name="status" class="form-select">
+                        <option value="Pending" {% if booking.booking_status == 'Pending' %}selected{% endif %}>Pending</option>
+                        <option value="Approved" {% if booking.booking_status == 'Approved' %}selected{% endif %}>Approved</option>
+                        <option value="Confirmed" {% if booking.booking_status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                        <option value="Completed" {% if booking.booking_status == 'Completed' %}selected{% endif %}>Completed</option>
+                        <option value="Cancelled" {% if booking.booking_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                        <option value="Rejected" {% if booking.booking_status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Admin Notes / Rejection Reason</label>
+                    <textarea name="reason" class="form-control" rows="3" placeholder="Optional notes to customer..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-peacock w-100 py-2">
+                    Update Booking Status
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

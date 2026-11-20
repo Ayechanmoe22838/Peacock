@@ -1,0 +1,46 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Feedback Moderation – Peacock Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Customer Reviews & Feedback</h1>
+        <p class="text-muted small mb-0">Review wedding couple ratings, respond to testimonials, and manage public displays.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for fb in feedbacks %}
+    <div class="col-lg-6">
+        <div class="peacock-card p-4 bg-white h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <strong class="d-block">{{ fb.customer.full_name }}</strong>
+                    <small class="text-muted">{{ fb.booking.venue.venue_name }}</small>
+                </div>
+                <div class="text-warning">
+                    {% for _ in range(fb.rating) %}<i class="bi bi-star-fill"></i>{% endfor %}
+                </div>
+            </div>
+            <h6 class="fw-bold font-serif my-2">"{{ fb.review_title }}"</h6>
+            <p class="small text-muted mb-3">"{{ fb.comments }}"</p>
+
+            {% if fb.admin_response %}
+            <div class="p-3 bg-light rounded small mb-3 border-start border-warning border-3">
+                <strong class="text-warning-emphasis">Admin Response:</strong>
+                <p class="mb-0 text-muted">{{ fb.admin_response }}</p>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="/admin/feedback/{{ fb.feedback_id }}/respond">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="response" class="form-control" placeholder="Write official admin reply..." required>
+                    <button type="submit" class="btn btn-peacock">Reply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

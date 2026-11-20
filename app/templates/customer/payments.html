@@ -1,0 +1,207 @@
+{% extends "customer/base_customer.html" %}
+
+{% block title %}Payments – Peacock{% endblock %}
+
+{% block customer_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Wedding Payments & Deposits</h1>
+        <p class="text-muted small mb-0">Submit verified KBZPay payment records and track transaction approval history.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Payment Overview & Submission Form -->
+    <div class="col-lg-6">
+        <!-- Balance Card -->
+        <div class="peacock-card p-4 mb-4" style="background: linear-gradient(135deg, #FFFDF8, #F8F3EA);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted small text-uppercase fw-semibold">Current Booking Account</span>
+                <span class="badge bg-warning text-dark">{{ primary_booking.booking_reference if primary_booking else 'None' }}</span>
+            </div>
+            
+            <div class="row g-3 text-center my-2">
+                <div class="col-4 border-end">
+                    <span class="text-muted small d-block">Total Cost</span>
+                    <strong class="d-block text-dark">{{ "{:,.0f}".format(primary_booking.total_cost if primary_booking else 0) }} Ks</strong>
+                </div>
+                <div class="col-4 border-end">
+                    <span class="text-success small d-block">Verified Paid</span>
+                    <strong class="d-block text-success">{{ "{:,.0f}".format(primary_booking.paid_amount if primary_booking else 0) }} Ks</strong>
+                </div>
+                <div class="col-4">
+                    <span class="text-danger small d-block">Outstanding</span>
+                    <strong class="d-block text-danger fs-6">{{ "{:,.0f}".format(primary_booking.balance_amount if primary_booking else 0) }} Ks</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Official KBZPay Instructions Card -->
+        <div class="kpay-payment-card mb-4 shadow-sm">
+            <div class="kpay-header">
+                <div>
+                    <span class="badge bg-primary px-3 py-1 mb-1">Official Payment Channel</span>
+                    <h5 class="h6 fw-bold mb-0 text-primary">KBZPay (KPay) Transfer Instructions</h5>
+                </div>
+                <i class="bi bi-shield-check text-primary fs-2"></i>
+            </div>
+            
+            <div class="p-3 bg-white rounded border mb-3">
+                <div class="row g-2 small">
+                    <div class="col-6">
+                        <span class="text-muted d-block">Merchant Account Name:</span>
+                        <strong class="text-dark">PEACOCK WEDDING SERVICES</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted d-block">KBZPay Account Phone:</span>
+                        <strong class="text-primary fs-6">09450012345</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted"><i class="bi bi-info-circle text-primary me-1"></i> Check your receipt for the 16-digit Transaction ID.</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#kpaySampleModal">
+                    <i class="bi bi-receipt"></i> View Sample KPay Receipt
+                </button>
+            </div>
+            <p class="small text-muted mb-0">
+                Transfer via your KBZPay mobile application, take a screenshot of the transaction receipt, and submit the transaction reference number below for administrative verification.
+            </p>
+        </div>
+
+        <!-- Sample KPay Receipt Modal -->
+        <div class="modal fade" id="kpaySampleModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title font-serif">Sample KBZPay Payment Receipt</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center p-3">
+                        <img src="/static/images/receipts/kpay_1794727202911.jpg" alt="Sample KBZPay Receipt" class="img-fluid rounded border shadow-sm" style="max-height: 480px;">
+                        <p class="text-muted small mt-2 mb-0">Ensure the Transaction ID and Transfer Amount match your submission.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Payment Form -->
+        {% if primary_booking and primary_booking.balance_amount > 0 %}
+        <div class="peacock-card p-4">
+            <h5 class="h6 fw-bold font-serif mb-3">Submit Payment Reference</h5>
+            
+            <form method="POST" action="/customer/payments/submit" enctype="multipart/form-data">
+                <input type="hidden" name="booking_id" value="{{ primary_booking.booking_id }}">
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Payment Amount (MMK) *</label>
+                    <div class="input-group">
+                        <input type="number" name="amount" class="form-control" required step="1000" 
+                               value="{{ primary_booking.balance_amount }}" max="{{ primary_booking.balance_amount }}">
+                        <span class="input-group-text">Ks</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Payment Method *</label>
+                    <select name="payment_method" class="form-select">
+                        <option value="KBZPay" selected>KBZPay (KPay)</option>
+                        <option value="Bank Transfer">AYA / CB / KBZ Bank Transfer</option>
+                        <option value="WavePay">WavePay Mobile Wallet</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Transaction Reference Number *</label>
+                    <input type="text" name="transaction_reference" class="form-control" required placeholder="e.g. 0202611162391024">
+                    <small class="text-muted">Enter the 16-digit or reference ID shown on your payment receipt.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Upload Payment Receipt Screenshot (Optional)</label>
+                    <input type="file" name="receipt_file" class="form-control" accept="image/*">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold">Customer Notes</label>
+                    <input type="text" name="notes" class="form-control" placeholder="e.g. 50% wedding reception deposit">
+                </div>
+
+                <button type="submit" class="btn btn-peacock w-100 py-2">
+                    <i class="bi bi-shield-lock"></i> Submit Payment for Admin Verification
+                </button>
+            </form>
+        </div>
+        {% elif primary_booking %}
+        <div class="alert alert-success p-4 rounded-3 text-center">
+            <i class="bi bi-patch-check-fill fs-2 d-block mb-2"></i>
+            <h5 class="fw-bold">All Payments Cleared!</h5>
+            <p class="mb-0 small">Outstanding balance for booking {{ primary_booking.booking_reference }} is completely settled.</p>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            Please create an active wedding booking before submitting payments.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Payment Transaction History -->
+    <div class="col-lg-6">
+        <div class="peacock-card overflow-hidden">
+            <div class="card-header bg-light py-3">
+                <h6 class="mb-0 fw-bold font-serif">Payment Audit History</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ref</th>
+                            <th>Amount</th>
+                            <th>Method / Txn</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if payments %}
+                            {% for p in payments %}
+                            <tr>
+                                <td class="fw-bold">{{ p.payment_reference }}</td>
+                                <td class="fw-semibold">{{ "{:,.0f}".format(p.amount) }} Ks</td>
+                                <td>
+                                    <span class="d-block">{{ p.payment_method }}</span>
+                                    <small class="text-muted">{{ p.transaction_reference }}</small>
+                                </td>
+                                <td>
+                                    {% if p.payment_status == 'Verified' %}
+                                    <span class="badge bg-success-subtle text-success border border-success">Verified</span>
+                                    {% elif p.payment_status == 'Rejected' %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger">Rejected</span>
+                                    {% else %}
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning">Pending Review</span>
+                                    {% endif %}
+                                </td>
+                                <td><small class="text-muted">{{ p.payment_date.strftime("%b %d, %Y") }}</small></td>
+                            </tr>
+                            {% if p.admin_notes %}
+                            <tr class="table-light">
+                                <td colspan="5" class="small text-muted py-1 ps-4">
+                                    <i class="bi bi-chat-left-quote"></i> <strong>Admin Note:</strong> {{ p.admin_notes }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    No payment transactions submitted yet.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

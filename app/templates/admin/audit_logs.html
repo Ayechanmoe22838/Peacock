@@ -1,0 +1,49 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Audit Logs – Peacock Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Security & Financial Audit Trail</h1>
+        <p class="text-muted small mb-0">Immutable records of booking creations, approvals, payment verifications, and administrative actions.</p>
+    </div>
+</div>
+
+<div class="peacock-card overflow-hidden bg-white">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="table-light">
+                <tr>
+                    <th>Timestamp (UTC)</th>
+                    <th>User ID</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Audit Details</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if audit_logs %}
+                    {% for log in audit_logs %}
+                    <tr>
+                        <td class="text-muted">{{ log.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+                        <td><code>User #{{ log.user_id or 'System' }}</code></td>
+                        <td><span class="badge bg-light text-dark border">{{ log.action }}</span></td>
+                        <td><strong>{{ log.entity_type }}</strong></td>
+                        <td class="text-secondary">{{ log.details }}</td>
+                        <td><small class="text-muted">{{ log.ip_address or '127.0.0.1' }}</small></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            No audit events logged yet.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

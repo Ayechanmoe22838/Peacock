@@ -1,0 +1,95 @@
+{% extends "customer/base_customer.html" %}
+
+{% block title %}Event Schedule – Peacock{% endblock %}
+
+{% block customer_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Reception Event Timeline</h1>
+        <p class="text-muted small mb-0">Plan every magical moment of your reception from guest arrival to the closing farewell.</p>
+    </div>
+    <button type="button" class="btn btn-peacock btn-sm" data-bs-toggle="modal" data-bs-target="#addActivityModal">
+        <i class="bi bi-plus-circle"></i> Add Timeline Activity
+    </button>
+</div>
+
+<div class="peacock-card p-4">
+    {% if schedules %}
+    <div class="timeline border-start border-warning border-3 ms-3 ps-4">
+        {% for sc in schedules %}
+        <div class="mb-4 position-relative">
+            <div class="position-absolute" style="left: -32px; top: 0px;">
+                <span class="badge bg-warning rounded-circle p-2" style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">
+                    {{ sc.order_index }}
+                </span>
+            </div>
+            
+            <div class="peacock-card p-3 shadow-sm border">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="badge bg-light text-dark border small mb-1">
+                            <i class="bi bi-clock me-1 text-warning"></i> {{ sc.start_time.strftime("%I:%M %p") }} – {{ sc.end_time.strftime("%I:%M %p") }}
+                        </span>
+                        <h5 class="h6 fw-bold mb-1 font-serif">{{ sc.activity_name }}</h5>
+                        <p class="text-muted small mb-0">{{ sc.description }}</p>
+                    </div>
+                    <form method="POST" action="/customer/schedules/{{ sc.schedule_id }}/delete" onsubmit="return confirm('Delete activity?');">
+                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="p-5 text-center text-muted">
+        <i class="bi bi-clock-history fs-1 mb-3 d-block"></i>
+        <h5 class="fw-bold">No Scheduled Activities</h5>
+        <p class="small">Add key milestones such as Ceremony, Dinner Banquet, Cake Cutting, and Dancing.</p>
+        <button type="button" class="btn btn-peacock btn-sm" data-bs-toggle="modal" data-bs-target="#addActivityModal">
+            Add First Activity
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Activity Modal -->
+<div class="modal fade" id="addActivityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/customer/schedules/add">
+                <div class="modal-header">
+                    <h5 class="modal-title font-serif">Add Reception Activity</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Activity Name *</label>
+                        <input type="text" name="activity_name" class="form-control" required placeholder="e.g. Traditional Tea Ceremony, Cake Cutting">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Start Time *</label>
+                            <input type="time" name="start_time" class="form-control" required value="18:00">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">End Time *</label>
+                            <input type="time" name="end_time" class="form-control" required value="19:00">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Activity Details / Notes</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="Brief description of who is involved..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-peacock">Add to Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

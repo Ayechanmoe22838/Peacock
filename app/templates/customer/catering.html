@@ -1,0 +1,214 @@
+{% extends "customer/base_customer.html" %}
+
+{% block title %}Catering Menus – Peacock Customer Portal{% endblock %}
+
+{% block customer_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Gourmet Catering & Wedding Menus</h1>
+        <p class="text-muted small mb-0">Select authentic Myanmar feasts, royal delicacies, international dining, desserts and refreshments.</p>
+    </div>
+    {% if primary_booking %}
+    <div>
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-semibold">
+            <i class="bi bi-calendar2-check"></i> Booking: {{ primary_booking.booking_reference }}
+        </span>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Alerts -->
+{% if request.query_params.get('success') %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i> {{ request.query_params.get('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+{% if request.query_params.get('error') %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ request.query_params.get('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- Selected Menus for Current Booking -->
+{% if primary_booking and selected_menus %}
+<div class="peacock-card p-4 mb-4 border-warning border-opacity-50" style="background: linear-gradient(135deg, #FFFDF8, #F8F3EA);">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="h6 fw-bold font-serif mb-0 text-dark">
+            <i class="bi bi-cart-check text-warning me-2"></i> Selected Catering for Your Reception
+        </h5>
+        <span class="badge bg-dark px-3 py-2 fs-6">
+            Total Catering: {{ "{:,.0f}".format(primary_booking.catering_cost) }} Ks
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0 bg-white rounded border">
+            <thead class="table-light small">
+                <tr>
+                    <th>Item</th>
+                    <th>Category</th>
+                    <th class="text-end">Portion Price</th>
+                    <th class="text-center">Quantity</th>
+                    <th class="text-end">Total Price</th>
+                    <th>Dietary Notes</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for item in selected_menus %}
+                <tr>
+                    <td class="fw-semibold">
+                        <img src="{{ item.menu.image_url }}" alt="" class="rounded me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                        {{ item.menu.name }}
+                    </td>
+                    <td><span class="badge bg-light text-dark border">{{ item.menu.category }}</span></td>
+                    <td class="text-end">{{ "{:,.0f}".format(item.unit_price) }} Ks</td>
+                    <td class="text-center fw-bold">{{ item.quantity }} portions</td>
+                    <td class="text-end fw-bold text-success">{{ "{:,.0f}".format(item.total_price) }} Ks</td>
+                    <td class="text-muted">{{ item.dietary_notes or 'Standard preparation' }}</td>
+                    <td class="text-end">
+                        <form method="POST" action="/customer/catering/remove-item/{{ item.id }}" class="d-inline" onsubmit="return confirm('Remove this menu item from your wedding reception?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
+                                <i class="bi bi-trash"></i> Remove
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Category Filter Pills -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <button class="btn btn-sm btn-peacock filter-btn active" onclick="filterMenus('all', this)">All Items ({{ menus|length }})</button>
+    <button class="btn btn-sm btn-outline-secondary filter-btn" onclick="filterMenus('Traditional Myanmar', this)">Traditional Myanmar</button>
+    <button class="btn btn-sm btn-outline-secondary filter-btn" onclick="filterMenus('Main Course', this)">Main Course</button>
+    <button class="btn btn-sm btn-outline-secondary filter-btn" onclick="filterMenus('Dessert', this)">Dessert</button>
+    <button class="btn btn-sm btn-outline-secondary filter-btn" onclick="filterMenus('Beverage', this)">Beverage</button>
+</div>
+
+<!-- Menu Catalog Grid -->
+<div class="row g-4" id="menuGrid">
+    {% for menu in menus %}
+    <div class="col-lg-4 col-md-6 menu-card-wrapper" data-category="{{ menu.category }}">
+        <div class="peacock-card h-100 d-flex flex-column">
+            <div class="position-relative">
+                <img src="{{ menu.image_url or '/static/images/banquet_feast.jpg' }}" 
+                     alt="{{ menu.name }}" 
+                     class="w-100" 
+                     style="height: 220px; object-fit: cover;">
+                <span class="position-absolute top-0 end-0 m-3 badge bg-dark bg-opacity-75 px-3 py-1">
+                    {{ menu.category }}
+                </span>
+            </div>
+            
+            <div class="p-4 d-flex flex-column flex-grow-1">
+                <h5 class="h6 fw-bold mb-1 font-serif">{{ menu.name }}</h5>
+                <p class="text-muted small flex-grow-1 mb-3">{{ menu.description }}</p>
+                
+                <div class="border-top pt-3 d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted small">Portion Price:</span>
+                    <strong class="text-dark fs-6">{{ "{:,.0f}".format(menu.price_per_person) }} Ks</strong>
+                </div>
+
+                {% if primary_booking %}
+                <button type="button" class="btn btn-peacock-outline btn-sm w-100" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#addMenuModal{{ menu.menu_id }}">
+                    <i class="bi bi-plus-circle"></i> Add to Reception
+                </button>
+                {% else %}
+                <a href="/customer/booking/wizard" class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="bi bi-calendar-plus"></i> Book Venue to Order
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if primary_booking %}
+    <!-- Add Modal for {{ menu.name }} -->
+    <div class="modal fade" id="addMenuModal{{ menu.menu_id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="POST" action="/customer/catering/add-item">
+                    <input type="hidden" name="menu_id" value="{{ menu.menu_id }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title font-serif">Add to Wedding Reception</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex align-items-center gap-3 mb-3 p-2 bg-light rounded">
+                            <img src="{{ menu.image_url }}" alt="" class="rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                            <div>
+                                <h6 class="fw-bold mb-0 font-serif">{{ menu.name }}</h6>
+                                <small class="text-muted">{{ "{:,.0f}".format(menu.price_per_person) }} Ks / portion</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Serving Portions / Quantity *</label>
+                            <input type="number" name="quantity" class="form-control" required min="1" 
+                                   value="{{ primary_booking.guest_count }}" 
+                                   id="qtyInput{{ menu.menu_id }}"
+                                   oninput="updateCalc{{ menu.menu_id }}()">
+                            <small class="text-muted">Default is set to your booking's expected guest count ({{ primary_booking.guest_count }} guests).</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Dietary & Preparation Notes (Optional)</label>
+                            <input type="text" name="dietary_notes" class="form-control" placeholder="e.g. Mild spice, vegetarian alternative, separate serving table">
+                        </div>
+
+                        <div class="p-3 bg-light rounded border text-end">
+                            <span class="text-muted small d-block">Estimated Addition:</span>
+                            <strong class="fs-5 text-success" id="calcTotal{{ menu.menu_id }}">
+                                {{ "{:,.0f}".format(primary_booking.guest_count * menu.price_per_person) }} Ks
+                            </strong>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-peacock">Confirm & Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+    function updateCalc{{ menu.menu_id }}() {
+        const qty = parseInt(document.getElementById('qtyInput{{ menu.menu_id }}').value) || 0;
+        const price = {{ menu.price_per_person }};
+        const total = qty * price;
+        document.getElementById('calcTotal{{ menu.menu_id }}').innerText = total.toLocaleString() + ' Ks';
+    }
+    </script>
+    {% endif %}
+
+    {% endfor %}
+</div>
+
+<script>
+function filterMenus(category, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('btn-peacock', 'active');
+        b.classList.add('btn-outline-secondary');
+    });
+    btn.classList.add('btn-peacock', 'active');
+    btn.classList.remove('btn-outline-secondary');
+
+    document.querySelectorAll('.menu-card-wrapper').forEach(card => {
+        if (category === 'all' || card.dataset.category.includes(category)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

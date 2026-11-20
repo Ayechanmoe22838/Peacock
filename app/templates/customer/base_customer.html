@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Portal – Peacock{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <aside class="col-lg-2 col-md-3 d-none d-md-block dashboard-sidebar">
+            <div class="text-center pb-3 mb-3 border-bottom">
+                <div class="rounded-circle bg-warning text-white p-3 mx-auto mb-2 fw-bold fs-4" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
+                    {{ current_user.full_name[0] }}
+                </div>
+                <h6 class="fw-bold mb-0 text-truncate">{{ current_user.full_name }}</h6>
+                <small class="text-muted">Wedding Customer</small>
+                <div class="mt-2">
+                    <button class="btn btn-theme-toggle theme-toggle-btn btn-sm w-100" type="button" onclick="togglePeacockTheme()">
+                        <i class="theme-toggle-icon bi bi-moon-stars-fill text-primary"></i>
+                        <span class="theme-toggle-text">Dark Mode</span>
+                    </button>
+                </div>
+            </div>
+
+            <nav class="nav flex-column">
+                <a class="sidebar-nav-item {% if active_page == 'dashboard' %}active{% endif %}" href="/customer/dashboard">
+                    <i class="bi bi-speedometer2"></i> Overview
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'profile' %}active{% endif %}" href="/customer/profile">
+                    <i class="bi bi-person"></i> My Profile ({{ current_user.full_name or 'Cherry' }})
+                </a>
+                <a class="sidebar-nav-item" href="/venues" target="_blank">
+                    <i class="bi bi-building"></i> Browse Venues
+                </a>
+                <a class="sidebar-nav-item" href="/packages" target="_blank">
+                    <i class="bi bi-gem"></i> Wedding Packages
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'bookings' %}active{% endif %}" href="/customer/bookings">
+                    <i class="bi bi-journal-check"></i> My Bookings
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'booking_wizard' %}active{% endif %}" href="/customer/booking/wizard">
+                    <i class="bi bi-calendar-plus"></i> New Booking
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'vendors' %}active{% endif %}" href="/customer/vendors">
+                    <i class="bi bi-camera"></i> Vendors
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'catering' %}active{% endif %}" href="/customer/catering">
+                    <i class="bi bi-egg-fried"></i> Catering
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'guests' %}active{% endif %}" href="/customer/guests">
+                    <i class="bi bi-people"></i> My Guests
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'invitations' %}active{% endif %}" href="/customer/invitations">
+                    <i class="bi bi-envelope-paper-heart"></i> Invitations
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'seating' %}active{% endif %}" href="/customer/seating">
+                    <i class="bi bi-diagram-3"></i> Seating Planner
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'budget' %}active{% endif %}" href="/customer/budget">
+                    <i class="bi bi-wallet2"></i> Budget Tracker
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'payments' %}active{% endif %}" href="/customer/payments">
+                    <i class="bi bi-credit-card"></i> Payments
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'schedules' %}active{% endif %}" href="/customer/schedules">
+                    <i class="bi bi-clock-history"></i> Event Schedule
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'notifications' %}active{% endif %}" href="/customer/notifications">
+                    <i class="bi bi-bell"></i> Notifications
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'feedback' %}active{% endif %}" href="/customer/feedback">
+                    <i class="bi bi-star"></i> Feedback
+                </a>
+                <hr class="my-2 text-muted">
+                <a class="sidebar-nav-item text-danger" href="/logout">
+                    <i class="bi bi-box-arrow-right"></i> Log Out
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Body Area -->
+        <main class="col-lg-10 col-md-9 p-4 p-md-5 customer-main-area">
+            {% block customer_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

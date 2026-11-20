@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel – Peacock{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Admin Sidebar Navigation -->
+        <aside class="col-lg-2 col-md-3 d-none d-md-block dashboard-sidebar">
+            <div class="text-center pb-3 mb-3 border-bottom">
+                <div class="rounded-circle bg-dark text-warning p-3 mx-auto mb-2 fw-bold fs-4" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-shield-lock"></i>
+                </div>
+                <h6 class="fw-bold mb-0">Peacock Admin</h6>
+                <small class="badge bg-warning-subtle text-warning-emphasis">Super Administrator</small>
+                <div class="mt-2">
+                    <button class="btn btn-theme-toggle theme-toggle-btn btn-sm w-100" type="button" onclick="togglePeacockTheme()">
+                        <i class="theme-toggle-icon bi bi-moon-stars-fill text-primary"></i>
+                        <span class="theme-toggle-text">Dark Mode</span>
+                    </button>
+                </div>
+            </div>
+
+            <nav class="nav flex-column">
+                <a class="sidebar-nav-item {% if active_page == 'dashboard' %}active{% endif %}" href="/admin/dashboard">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'users' %}active{% endif %}" href="/admin/users">
+                    <i class="bi bi-people"></i> Users
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'venues' %}active{% endif %}" href="/admin/venues">
+                    <i class="bi bi-building"></i> Venues
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'availability' %}active{% endif %}" href="/admin/availability">
+                    <i class="bi bi-calendar2-range"></i> Availability
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'bookings' %}active{% endif %}" href="/admin/bookings">
+                    <i class="bi bi-journal-bookmark"></i> Bookings
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'packages' %}active{% endif %}" href="/admin/packages">
+                    <i class="bi bi-box-seam"></i> Packages
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'vendors' %}active{% endif %}" href="/admin/vendors">
+                    <i class="bi bi-camera"></i> Vendors
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'catering' %}active{% endif %}" href="/admin/catering">
+                    <i class="bi bi-egg-fried"></i> Catering
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'guests' %}active{% endif %}" href="/admin/guests">
+                    <i class="bi bi-person-lines-fill"></i> Guests
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'payments' %}active{% endif %}" href="/admin/payments">
+                    <i class="bi bi-credit-card"></i> Payments
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'reports' %}active{% endif %}" href="/admin/reports">
+                    <i class="bi bi-file-earmark-bar-graph"></i> Reports
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'feedback' %}active{% endif %}" href="/admin/feedback">
+                    <i class="bi bi-chat-heart"></i> Feedback
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'notifications' %}active{% endif %}" href="/admin/notifications">
+                    <i class="bi bi-broadcast"></i> Notifications
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'audit' %}active{% endif %}" href="/admin/audit-logs">
+                    <i class="bi bi-journal-text"></i> Audit Logs
+                </a>
+                <a class="sidebar-nav-item {% if active_page == 'settings' %}active{% endif %}" href="/admin/settings">
+                    <i class="bi bi-gear"></i> Settings
+                </a>
+                <hr class="my-2 text-muted">
+                <a class="sidebar-nav-item text-danger" href="/logout">
+                    <i class="bi bi-box-arrow-right"></i> Log Out
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Admin Content Area -->
+        <main class="col-lg-10 col-md-9 p-4 p-md-5 admin-main-area">
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

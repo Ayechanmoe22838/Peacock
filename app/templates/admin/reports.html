@@ -1,0 +1,145 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Management Reports – Peacock Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Management Reports & Analytics</h1>
+        <p class="text-muted small mb-0">Generate financial summaries, booking ledgers, and revenue records with instant CSV and PDF exports.</p>
+    </div>
+</div>
+
+<!-- Export Controls Card -->
+<div class="peacock-card p-4 bg-white mb-4">
+    <h5 class="h6 fw-bold font-serif mb-3">Report Filtering & Export Options</h5>
+    <form method="GET" action="/admin/reports" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold">Report Category</label>
+            <select name="type" class="form-select form-select-sm">
+                <option value="bookings" {% if report_type == 'bookings' %}selected{% endif %}>Bookings & Contract Ledger</option>
+                <option value="payments" {% if report_type == 'payments' %}selected{% endif %}>Payment & Deposit Transactions</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold">Start Date</label>
+            <input type="date" name="start_date" value="{{ start_date or '' }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold">End Date</label>
+            <input type="date" name="end_date" value="{{ end_date or '' }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-dark btn-sm flex-grow-1">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+            <a href="/admin/reports/export/csv?type={{ report_type }}&start_date={{ start_date or '' }}&end_date={{ end_date or '' }}" class="btn btn-outline-success btn-sm" title="Export CSV">
+                <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+            </a>
+            <a href="/admin/reports/export/pdf?type={{ report_type }}&start_date={{ start_date or '' }}&end_date={{ end_date or '' }}" class="btn btn-outline-danger btn-sm" title="Export PDF">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Report Summary Metrics -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="peacock-card p-3 bg-white">
+            <span class="text-muted small d-block">Report Records</span>
+            <span class="fs-4 fw-bold font-serif text-dark">{{ records_count }} Rows</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="peacock-card p-3 bg-white">
+            <span class="text-muted small d-block">Total Value</span>
+            <span class="fs-4 fw-bold font-serif text-success">{{ "{:,.0f}".format(total_sum) }} Ks</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="peacock-card p-3 bg-white">
+            <span class="text-muted small d-block">Average Transaction</span>
+            <span class="fs-4 fw-bold font-serif text-primary">{{ "{:,.0f}".format(avg_sum) }} Ks</span>
+        </div>
+    </div>
+</div>
+
+<!-- Report Preview Table -->
+<div class="peacock-card overflow-hidden bg-white">
+    <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold font-serif">Report Data Preview</h6>
+        <span class="badge bg-light text-dark border">Currency: Myanmar Kyat (MMK)</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="table-light">
+                {% if report_type == 'bookings' %}
+                <tr>
+                    <th>Ref</th>
+                    <th>Customer</th>
+                    <th>Venue</th>
+                    <th>Date</th>
+                    <th>Total (MMK)</th>
+                    <th>Paid</th>
+                    <th>Balance</th>
+                    <th>Status</th>
+                </tr>
+                {% else %}
+                <tr>
+                    <th>Payment Ref</th>
+                    <th>Booking Ref</th>
+                    <th>Customer</th>
+                    <th>Amount (MMK)</th>
+                    <th>Method</th>
+                    <th>Txn ID</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+                {% endif %}
+            </thead>
+            <tbody>
+                {% if records %}
+                    {% for r in records %}
+                        {% if report_type == 'bookings' %}
+                        <tr>
+                            <td class="fw-bold">{{ r.booking_reference }}</td>
+                            <td>{{ r.customer.full_name }}</td>
+                            <td>{{ r.venue.venue_name }}</td>
+                            <td>{{ r.event_date.strftime("%Y-%m-%d") }}</td>
+                            <td class="fw-bold">{{ "{:,.0f}".format(r.total_cost) }} Ks</td>
+                            <td class="text-success">{{ "{:,.0f}".format(r.paid_amount) }} Ks</td>
+                            <td class="text-danger">{{ "{:,.0f}".format(r.balance_amount) }} Ks</td>
+                            <td>
+                                <span class="badge-status-{{ r.booking_status.lower().replace(' ', '-') }}">
+                                    {{ r.booking_status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td class="fw-bold">{{ r.payment_reference }}</td>
+                            <td>{{ r.booking.booking_reference }}</td>
+                            <td>{{ r.booking.customer.full_name }}</td>
+                            <td class="fw-bold text-success">{{ "{:,.0f}".format(r.amount) }} Ks</td>
+                            <td>{{ r.payment_method }}</td>
+                            <td><code>{{ r.transaction_reference }}</code></td>
+                            <td>
+                                <span class="badge bg-success-subtle text-success border border-success">{{ r.payment_status }}</span>
+                            </td>
+                            <td>{{ r.payment_date.strftime("%Y-%m-%d %H:%M") }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            No records found within selected parameters.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

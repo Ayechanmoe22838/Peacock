@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}About Us – Peacock{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light-subtle border-bottom">
+    <div class="container text-center">
+        <h1 class="display-5 fw-bold font-serif">About Peacock</h1>
+        <p class="text-muted">Smart Wedding Reception Management System designed for modern couples and wedding professionals.</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row align-items-center g-5 mb-5">
+        <div class="col-lg-6">
+            <span class="text-warning text-uppercase fw-bold small">Our Mission</span>
+            <h2 class="display-6 fw-bold font-serif mb-4">Making Wedding Reception Planning Joyful, Elegant & Stress-Free</h2>
+            <p class="text-secondary leading-relaxed mb-3">
+                Wedding planning often involves juggling dozens of venues, caterers, decorators, guest lists, and financial records across spreadsheets and message threads. 
+            </p>
+            <p class="text-secondary leading-relaxed mb-4">
+                <strong>Peacock</strong> centralizes the entire journey into a single intelligent web application. From reserving magnificent ballrooms without double-booking conflicts, to generating digital wedding invitations, seating guests at interactive tables, and tracking real-time Myanmar Kyat (MMK) expenses with audited KBZPay payment confirmations.
+            </p>
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="p-3 bg-light rounded-3">
+                        <h4 class="fw-bold text-warning mb-1">Conflict-Free</h4>
+                        <p class="small text-muted mb-0">Automated venue schedule validation prevents overlapping bookings.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 bg-light rounded-3">
+                        <h4 class="fw-bold text-warning mb-1">Audited KBZPay</h4>
+                        <p class="small text-muted mb-0">Transparent manual verification ensuring safe deposit handling.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <img src="/static/images/luxury_ballroom.jpg" alt="Peacock Ballroom" class="img-fluid rounded-4 shadow">
+        </div>
+    </div>
+</div>
+{% endblock %}

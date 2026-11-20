@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}{{ invitation.custom_title }} – Wedding Celebration{% endblock %}
+
+{% block content %}
+<div class="py-5" style="background: radial-gradient(circle, #FFFDF8 0%, #F8F3EA 100%); min-height: 85vh;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                
+                <!-- Main Invitation Card -->
+                <div class="invitation-card-container mb-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-gem text-warning fs-1"></i>
+                        <span class="d-block text-uppercase text-warning fw-semibold small tracking-wider mt-2">Wedding Reception Invitation</span>
+                    </div>
+
+                    <!-- Couple Names -->
+                    <h1 class="display-4 fw-bold font-serif my-3" style="color: #8c6d36;">
+                        {{ invitation.custom_title }}
+                    </h1>
+
+                    <p class="fs-5 text-secondary fst-italic my-4 px-md-4">
+                        "{{ invitation.custom_message }}"
+                    </p>
+
+                    <div class="my-4 py-3 border-top border-bottom border-warning border-opacity-50">
+                        <div class="row g-3 text-center">
+                            <div class="col-md-6 border-end-md">
+                                <span class="text-muted small text-uppercase d-block">Wedding Date</span>
+                                <span class="fs-5 fw-bold font-serif text-dark">{{ invitation.wedding_date.strftime("%B %d, %Y") }}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="text-muted small text-uppercase d-block">Time</span>
+                                <span class="fs-5 fw-bold font-serif text-dark">{{ invitation.start_time.strftime("%I:%M %p") }} – {{ invitation.end_time.strftime("%I:%M %p") }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <span class="text-muted small text-uppercase d-block">Reception Venue</span>
+                        <h4 class="h5 fw-bold font-serif text-dark mb-1">{{ invitation.venue_name }}</h4>
+                        <p class="text-muted small mb-0"><i class="bi bi-geo-alt text-danger"></i> {{ invitation.venue_address }}</p>
+                    </div>
+
+                    <img src="{{ template_image }}" 
+                         alt="Royal Invitation Card" 
+                         class="img-fluid rounded-4 shadow mx-auto my-3" 
+                         style="max-height: 380px; object-fit: cover;">
+                </div>
+
+                <!-- Digital RSVP Form Card -->
+                <div class="peacock-card p-4 p-md-5 bg-white">
+                    <div class="text-center mb-4">
+                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill small mb-2">Kindly Respond</span>
+                        <h3 class="h4 font-serif fw-bold">RSVP & Dietary Preferences</h3>
+                        <p class="text-muted small">Please let the bride and groom know if you can join their celebration.</p>
+                    </div>
+
+                    <div id="rsvpSuccessMsg" class="alert alert-success d-none text-center">
+                        <i class="bi bi-check-circle-fill fs-4 d-block mb-2"></i>
+                        <strong>Thank You!</strong> Your RSVP response has been recorded.
+                    </div>
+
+                    <form id="publicRsvpForm" onsubmit="submitRSVP(event)">
+                        <input type="hidden" id="invitationToken" value="{{ invitation.shareable_token }}">
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Your Full Name *</label>
+                            <input type="text" id="rsvpGuestName" class="form-control" required placeholder="Guest full name">
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Phone Number</label>
+                                <input type="tel" id="rsvpPhone" class="form-control" placeholder="09xxxxxxxxx">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Will You Attend? *</label>
+                                <select id="rsvpStatus" class="form-select" required>
+                                    <option value="Accepted">Joyfully Accept (Attending)</option>
+                                    <option value="Declined">Regretfully Decline</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Accompanying Plus Ones</label>
+                                <select id="rsvpPlusOnes" class="form-select">
+                                    <option value="0">Just Me (0 Plus Ones)</option>
+                                    <option value="1">1 Person</option>
+                                    <option value="2">2 Persons</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Dietary Notes / Allergies</label>
+                                <input type="text" id="rsvpDietary" class="form-control" placeholder="e.g. Vegetarian, Halal, No spicy">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold">Heartfelt Wishes for the Couple</label>
+                            <textarea id="rsvpNotes" class="form-control" rows="2" placeholder="Send your warm blessings..."></textarea>
+                        </div>
+
+                        <button type="submit" id="rsvpSubmitBtn" class="btn btn-peacock w-100 py-2 fs-6">
+                            <i class="bi bi-check2-circle"></i> Confirm RSVP
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function submitRSVP(event) {
+    event.preventDefault();
+    const token = document.getElementById("invitationToken").value;
+    const name = document.getElementById("rsvpGuestName").value;
+    const phone = document.getElementById("rsvpPhone").value;
+    const status = document.getElementById("rsvpStatus").value;
+    const plusOnes = parseInt(document.getElementById("rsvpPlusOnes").value) || 0;
+    const dietary = document.getElementById("rsvpDietary").value;
+    const notes = document.getElementById("rsvpNotes").value;
+    const btn = document.getElementById("rsvpSubmitBtn");
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Submitting RSVP...';
+
+    try {
+        const res = await fetch(`/api/invitations/${token}/rsvp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                guest_name: name,
+                phone: phone,
+                rsvp_status: status,
+                plus_ones: plusOnes,
+                dietary_requirements: dietary,
+                notes: notes
+            })
+        });
+
+        if (res.ok) {
+            document.getElementById("publicRsvpForm").classList.add("d-none");
+            document.getElementById("rsvpSuccessMsg").classList.remove("d-none");
+            showToast("Your RSVP response has been confirmed!", "success");
+        } else {
+            const err = await res.json();
+            alert(err.detail || "Error recording RSVP.");
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2-circle"></i> Confirm RSVP';
+        }
+    } catch (e) {
+        alert("Failed to submit RSVP. Please try again.");
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check2-circle"></i> Confirm RSVP';
+    }
+}
+</script>
+{% endblock %}

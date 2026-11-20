@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account – Peacock{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="peacock-card p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-heart-fill text-danger fs-1"></i>
+                    <h2 class="h3 font-serif fw-bold mt-2">Start Planning With Peacock</h2>
+                    <p class="text-muted small">Create your account to browse venues, reserve dates, customize catering, and manage invitations.</p>
+                </div>
+
+                {% if error %}
+                <div class="alert alert-danger small p-2 mb-3">
+                    <i class="bi bi-exclamation-circle me-1"></i> {{ error }}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="/register">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Full Name *</label>
+                        <input type="text" name="full_name" class="form-control" required placeholder="e.g. Aye Chan Moe" value="{{ form_data.full_name if form_data else '' }}">
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Email Address *</label>
+                            <input type="email" name="email" class="form-control" required placeholder="name@example.com" value="{{ form_data.email if form_data else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Phone Number *</label>
+                            <input type="tel" name="phone" class="form-control" required placeholder="09xxxxxxxxx" value="{{ form_data.phone if form_data else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Password * (Min 6 chars)</label>
+                            <input type="password" name="password" class="form-control" required placeholder="••••••••">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Confirm Password *</label>
+                            <input type="password" name="confirm_password" class="form-control" required placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold">Home / Wedding Location Address</label>
+                        <input type="text" name="address" class="form-control" placeholder="e.g. Inya Road, Bahan, Yangon" value="{{ form_data.address if form_data else '' }}">
+                    </div>
+
+                    <button type="submit" class="btn btn-peacock w-100 py-2">
+                        <i class="bi bi-person-check"></i> Register Account
+                    </button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <span class="text-muted small">Already have an account? </span>
+                    <a href="/login" class="small fw-semibold text-warning-emphasis">Log In Here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Peacock – Smart Wedding Reception Management System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-peacock">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill mb-3 fw-semibold">
+                    <i class="bi bi-stars"></i> Myanmar's Premier Wedding Planning Platform
+                </span>
+                <h1 class="hero-title mb-3">Plan Your Perfect Wedding Reception</h1>
+                <p class="hero-subtitle">
+                    Discover beautiful venues, explore wedding packages and organize every detail of your special celebration with Peacock.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="/venues" class="btn btn-peacock btn-lg">
+                        <i class="bi bi-geo-alt"></i> Explore Venues
+                    </a>
+                    <a href="/customer/booking/wizard" class="btn btn-light btn-lg text-dark border-0 shadow">
+                        <i class="bi bi-calendar2-heart"></i> Plan Your Wedding
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block text-center">
+                <div class="position-relative d-inline-block">
+                    <div class="peacock-hero-frame p-2 rounded-4 shadow-lg" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border: 2px solid rgba(214, 184, 117, 0.5);">
+                        <img src="/static/images/hero/36f8f996b6385156a36d6f7674cb47bb.jpg" 
+                             alt="Luxury Burmese Wedding Couple" 
+                             class="rounded-4 img-fluid shadow" 
+                             style="max-height: 480px; object-fit: cover;">
+                    </div>
+                    <div class="position-absolute bottom-0 start-0 translate-middle-y bg-white text-dark p-3 rounded-3 shadow-lg border-start border-4 border-warning text-start" style="margin-left: -20px; margin-bottom: 20px;">
+                        <span class="fw-bold d-block small"><i class="bi bi-patch-check-fill text-primary"></i> 100% Conflict-Free</span>
+                        <small class="text-muted">Guaranteed Venue Availability</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Stats Strip -->
+<section class="py-4 bg-white border-bottom shadow-sm">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-warning mb-1 font-serif">{{ total_venues or 4 }}+</h3>
+                    <p class="text-muted small mb-0">Exclusive Wedding Venues</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-warning mb-1 font-serif">{{ total_packages or 3 }}+</h3>
+                    <p class="text-muted small mb-0">Curated Wedding Packages</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-warning mb-1 font-serif">{{ total_vendors or 8 }}+</h3>
+                    <p class="text-muted small mb-0">Verified Master Vendors</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-warning mb-1 font-serif">100%</h3>
+                    <p class="text-muted small mb-0">Double-Booking Conflict Free</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Venues -->
+<section class="py-5" style="background-color: var(--color-cream);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="text-warning text-uppercase fw-bold small tracking-wider">Dream Settings</span>
+            <h2 class="display-6 fw-bold">Featured Wedding Venues</h2>
+            <p class="text-muted max-w-600 mx-auto">From grand royal ballrooms in Yangon to serene lakeside gardens in Inle, find your idyllic celebration backdrop.</p>
+        </div>
+
+        <div class="row g-4">
+            {% for venue in featured_venues %}
+            <div class="col-lg-4 col-md-6">
+                <div class="peacock-card h-100 d-flex flex-column">
+                    <div class="position-relative">
+                        <img src="{{ venue.images[0].image_url if venue.images else '/static/images/luxury_ballroom.jpg' }}" 
+                             alt="{{ venue.venue_name }}" 
+                             class="w-100" 
+                             style="height: 240px; object-fit: cover;">
+                        <span class="position-absolute top-0 end-0 m-3 badge bg-dark bg-opacity-75 px-3 py-2">
+                            <i class="bi bi-geo-alt text-warning"></i> {{ venue.city }}
+                        </span>
+                    </div>
+                    <div class="p-4 d-flex flex-column flex-grow-1">
+                        <h4 class="h5 mb-2">{{ venue.venue_name }}</h4>
+                        <p class="text-muted small flex-grow-1">{{ venue.description[:110] }}...</p>
+                        
+                        <div class="border-top pt-3 mt-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block">Starting Base Price</small>
+                                <span class="fw-bold text-dark fs-5">{{ "{:,.0f}".format(venue.base_price) }} Ks</span>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block">Capacity</small>
+                                <span class="badge bg-light text-dark border"><i class="bi bi-people"></i> {{ venue.capacity }} Guests</span>
+                            </div>
+                        </div>
+                        
+                        <a href="/venues/{{ venue.venue_id }}" class="btn btn-peacock-outline w-100 mt-3">
+                            View Venue Details <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="/venues" class="btn btn-peacock btn-lg">
+                View All Available Venues ({{ total_venues }})
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Wedding Packages -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="text-warning text-uppercase fw-bold small">Tailored Luxury</span>
+            <h2 class="display-6 fw-bold">Popular Wedding Packages</h2>
+            <p class="text-muted">Complete styling, live entertainment, floral stages, and coordination bundled with transparent pricing.</p>
+        </div>
+
+        <div class="row g-4">
+            {% for pkg in popular_packages %}
+            <div class="col-lg-4 col-md-6">
+                <div class="peacock-card h-100 d-flex flex-column p-4 border-warning border-opacity-25">
+                    <div class="mb-3">
+                        <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-1 rounded-pill fw-semibold">Signature Tier</span>
+                        <h3 class="h4 mt-2">{{ pkg.package_name }}</h3>
+                        <div class="my-3">
+                            <span class="display-6 fw-bold text-dark">{{ "{:,.0f}".format(pkg.price) }}</span>
+                            <span class="text-muted fs-6">Ks</span>
+                        </div>
+                        <p class="text-muted small">{{ pkg.description }}</p>
+                    </div>
+
+                    <hr class="text-muted my-2">
+
+                    <h6 class="small fw-bold text-uppercase text-muted my-3">Services Included:</h6>
+                    <ul class="list-unstyled small mb-4 flex-grow-1">
+                        {% for s in pkg.services[:5] %}
+                        <li class="mb-2 d-flex align-items-start gap-2">
+                            <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                            <span>{{ s.service_name }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <a href="/packages/{{ pkg.package_id }}" class="btn btn-peacock w-100 mt-auto">
+                        Select This Package
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- How Peacock Works -->
+<section class="py-5" style="background-color: var(--color-cream);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="text-warning text-uppercase fw-bold small">Seamless Experience</span>
+            <h2 class="display-6 fw-bold">How Peacock Works</h2>
+            <p class="text-muted">Effortlessly organize your reception step-by-step through our intelligent wedding management platform.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+                    <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex p-3 fs-3 mb-3">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h5 class="fw-bold">1. Select Venue & Date</h5>
+                    <p class="text-muted small">Browse real active ballrooms with live availability calendars preventing schedule conflicts.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+                    <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex p-3 fs-3 mb-3">
+                        <i class="bi bi-palette"></i>
+                    </div>
+                    <h5 class="fw-bold">2. Customize Services</h5>
+                    <p class="text-muted small">Choose wedding packages, verified photographers, master decorators, and authentic royal catering.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+                    <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex p-3 fs-3 mb-3">
+                        <i class="bi bi-envelope-heart"></i>
+                    </div>
+                    <h5 class="fw-bold">3. Invite & Seat Guests</h5>
+                    <p class="text-muted small">Generate shareable digital invitations with instant RSVP tracking and interactive table seating planners.</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+                    <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex p-3 fs-3 mb-3">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="fw-bold">4. Verified Payment</h5>
+                    <p class="text-muted small">Submit deposits safely via KBZPay with manual administrator receipt audit and real-time budget balances.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="text-warning text-uppercase fw-bold small">Love Stories</span>
+            <h2 class="display-6 fw-bold">Customer Testimonials</h2>
+            <p class="text-muted">Real couples who planned their wedding reception journey with Peacock.</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            {% for fb in testimonials %}
+            <div class="col-lg-6">
+                <div class="peacock-card p-4 h-100 bg-light-subtle border-0 shadow-sm">
+                    <div class="d-flex text-warning mb-3">
+                        {% for _ in range(fb.rating) %}<i class="bi bi-star-fill me-1"></i>{% endfor %}
+                    </div>
+                    <h5 class="fw-bold font-serif mb-2">"{{ fb.review_title }}"</h5>
+                    <p class="fst-italic text-muted">"{{ fb.comments }}"</p>
+                    <div class="d-flex align-items-center gap-3 pt-3 border-top mt-3">
+                        <div class="rounded-circle bg-warning text-white p-2 fw-bold" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+                            {{ fb.customer.full_name[0] }}
+                        </div>
+                        <div>
+                            <span class="fw-semibold d-block">{{ fb.customer.full_name }}</span>
+                            <small class="text-muted">{{ fb.booking.venue.venue_name }}</small>
+                        </div>
+                    </div>
+                    {% if fb.admin_response %}
+                    <div class="mt-3 p-3 bg-white rounded border-start border-warning border-3 small">
+                        <strong class="text-warning-emphasis">Peacock Team Response:</strong>
+                        <p class="mb-0 text-muted">{{ fb.admin_response }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="py-5 text-center text-white" style="background: linear-gradient(135deg, #C5A46D, #8c6d36);">
+    <div class="container py-4">
+        <h2 class="display-5 fw-bold font-serif mb-3">Ready to Create Your Dream Reception?</h2>
+        <p class="fs-5 text-light opacity-90 max-w-600 mx-auto mb-4">
+            Join hundreds of happy couples across Myanmar. Check venue dates, select packages, and reserve with ease.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/register" class="btn btn-light btn-lg text-dark fw-semibold px-4 shadow">
+                Start Planning Free
+            </a>
+            <a href="/contact" class="btn btn-outline-light btn-lg px-4">
+                Speak With An Advisor
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

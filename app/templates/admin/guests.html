@@ -1,0 +1,84 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Guest Overview – Peacock Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Guest Overview</h1>
+        <p class="text-muted small mb-0">Monitor wedding guest counts, dietary notes, and RSVP confirmations across bookings.</p>
+    </div>
+</div>
+
+<!-- Booking Filter -->
+<div class="peacock-card p-3 bg-white mb-4">
+    <form method="GET" action="/admin/guests" class="row g-3 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label small fw-semibold">Filter by Wedding Booking</label>
+            <select name="booking_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">All Bookings</option>
+                {% for b in bookings %}
+                <option value="{{ b.booking_id }}" {% if selected_booking_id == b.booking_id %}selected{% endif %}>
+                    {{ b.booking_reference }} – {{ b.customer.full_name }} ({{ b.venue.venue_name }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+<div class="peacock-card overflow-hidden bg-white">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="table-light">
+                <tr>
+                    <th>Guest Name</th>
+                    <th>Booking Ref</th>
+                    <th>Category</th>
+                    <th>Phone</th>
+                    <th>RSVP Status</th>
+                    <th>Plus Ones</th>
+                    <th>Dietary Notes</th>
+                    <th>Table Seating</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if guests %}
+                    {% for g in guests %}
+                    <tr>
+                        <td class="fw-semibold">{{ g.guest_name }}</td>
+                        <td><code>{{ g.booking.booking_reference }}</code></td>
+                        <td><span class="badge bg-light text-dark border">{{ g.category }}</span></td>
+                        <td>{{ g.plain_phone or 'N/A' }}</td>
+                        <td>
+                            {% if g.rsvp_status == 'Accepted' %}
+                            <span class="badge bg-success-subtle text-success border border-success">Accepted</span>
+                            {% elif g.rsvp_status == 'Declined' %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger">Declined</span>
+                            {% else %}
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ g.plus_ones }}</td>
+                        <td><small class="text-muted">{{ g.dietary_requirements or 'None' }}</small></td>
+                        <td>
+                            {% if g.seating_assignment %}
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info">{{ g.seating_assignment.table.table_name }}</span>
+                            {% else %}
+                            <span class="text-muted">Unassigned</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            No guest records found.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

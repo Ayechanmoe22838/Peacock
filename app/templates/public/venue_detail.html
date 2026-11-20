@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}{{ venue.venue_name }} – Peacock{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/venues">Venues</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ venue.venue_name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <!-- Main Venue Details & Gallery -->
+        <div class="col-lg-8">
+            <div class="peacock-card overflow-hidden mb-4">
+                <img src="{{ venue.images[0].image_url if venue.images else '/static/images/luxury_ballroom.jpg' }}" 
+                     alt="{{ venue.venue_name }}" 
+                     class="w-100 rounded-top" 
+                     style="max-height: 480px; object-fit: cover;">
+                
+                <div class="p-4 p-md-5">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <span class="badge bg-warning text-dark px-3 py-2 fs-6">
+                            <i class="bi bi-geo-alt"></i> {{ venue.city }}
+                        </span>
+                        <span class="badge bg-light text-dark border px-3 py-2 fs-6">
+                            <i class="bi bi-people"></i> Max {{ venue.capacity }} Guests
+                        </span>
+                    </div>
+
+                    <h1 class="display-6 fw-bold font-serif mb-3">{{ venue.venue_name }}</h1>
+                    <p class="text-muted"><i class="bi bi-pin-map text-danger"></i> {{ venue.address }}</p>
+
+                    <hr class="my-4">
+
+                    <h4 class="h5 fw-bold mb-3 font-serif">About This Venue</h4>
+                    <p class="text-secondary leading-relaxed">{{ venue.description }}</p>
+
+                    <h4 class="h5 fw-bold mt-4 mb-3 font-serif">Included Venue Facilities</h4>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% if venue.facilities %}
+                            {% for f in venue.facilities.split(',') %}
+                            <span class="badge bg-light text-dark border px-3 py-2">
+                                <i class="bi bi-check2 text-success me-1"></i> {{ f.strip() }}
+                            </span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking & Availability Sidebar -->
+        <div class="col-lg-4">
+            <div class="peacock-card p-4 sticky-top" style="top: 100px;">
+                <div class="mb-4">
+                    <span class="text-muted small d-block">Starting Rental Rate</span>
+                    <span class="display-6 fw-bold text-dark">{{ "{:,.0f}".format(venue.base_price) }}</span>
+                    <span class="text-muted">Ks</span>
+                </div>
+
+                <!-- Live Date Availability Checker -->
+                <div class="p-3 bg-light rounded-3 mb-4 border">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-calendar-check text-warning"></i> Check Date Availability</h6>
+                    <form id="availabilityForm" class="mt-2">
+                        <input type="hidden" id="checkVenueId" value="{{ venue.venue_id }}">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted">Wedding Date</label>
+                            <input type="date" id="checkDate" class="form-control" data-min-today="true" required>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small text-muted">Start Time</label>
+                                <input type="time" id="checkStartTime" class="form-control" value="17:00" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-muted">End Time</label>
+                                <input type="time" id="checkEndTime" class="form-control" value="22:00" required>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-dark w-100 btn-sm" onclick="checkAvailability()">
+                            Verify Date & Time
+                        </button>
+                    </form>
+                    <div id="availabilityResult" class="mt-2 small d-none"></div>
+                </div>
+
+                <a href="/customer/booking/wizard?venue_id={{ venue.venue_id }}" class="btn btn-peacock btn-lg w-100 mb-3 shadow">
+                    <i class="bi bi-calendar-plus"></i> Reserve This Venue
+                </a>
+
+                <div class="text-center text-muted small">
+                    <i class="bi bi-shield-check text-success"></i> No overlapping booking guarantee.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function checkAvailability() {
+    const venueId = document.getElementById("checkVenueId").value;
+    const dateVal = document.getElementById("checkDate").value;
+    const startVal = document.getElementById("checkStartTime").value;
+    const endVal = document.getElementById("checkEndTime").value;
+    const resultDiv = document.getElementById("availabilityResult");
+
+    if (!dateVal || !startVal || !endVal) {
+        alert("Please choose date and times.");
+        return;
+    }
+
+    resultDiv.className = "mt-2 p-2 rounded small bg-light text-muted";
+    resultDiv.innerHTML = "Checking schedule availability...";
+    resultDiv.classList.remove("d-none");
+
+    try {
+        const res = await fetch(`/api/venues/${venueId}/check-availability?date=${dateVal}&start_time=${startVal}&end_time=${endVal}`);
+        const data = await res.json();
+        
+        if (data.available) {
+            resultDiv.className = "mt-2 p-2 rounded small bg-success-subtle text-success border border-success";
+            resultDiv.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Venue is available on ${dateVal}!`;
+        } else {
+            resultDiv.className = "mt-2 p-2 rounded small bg-danger-subtle text-danger border border-danger";
+            resultDiv.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i> ${data.reason}`;
+        }
+    } catch (e) {
+        resultDiv.className = "mt-2 p-2 rounded small bg-danger-subtle text-danger";
+        resultDiv.innerHTML = "Unable to check availability at this moment.";
+    }
+}
+</script>
+{% endblock %}

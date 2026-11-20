@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # ========================================================
+  # 1. MySQL Database Service
+  # ========================================================
+  db:
+    image: mysql:8.0
+    container_name: peacock_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: peacock_db
+      MYSQL_USER: peacock_user
+      MYSQL_PASSWORD: peacock_secure_pass_2026
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - peacock_network
+
+  # ========================================================
+  # 2. Backend Application Service (FastAPI)
+  # ========================================================
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: peacock_backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - ENVIRONMENT=production
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DB=peacock_db
+      - DATABASE_URL=mysql+pymysql://root:root@db:3306/peacock_db?charset=utf8mb4
+      - SECRET_KEY=peacock-secret-key-secure-wedding-system-2026
+    ports:
+      - "8000:8000"
+    volumes:
+      - peacock_media:/app/media
+    networks:
+      - peacock_network
+
+  # ========================================================
+  # 3. Frontend Gateway Service (Nginx Reverse Proxy)
+  # ========================================================
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: peacock_frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      - PORT=80
+      - BACKEND_URL=http://backend:8000
+    ports:
+      - "80:80"
+    volumes:
+      - peacock_media:/usr/share/nginx/html/media:ro
+    networks:
+      - peacock_network
+
+volumes:
+  mysql_data:
+    driver: local
+  peacock_media:
+    driver: local
+
+networks:
+  peacock_network:
+    driver: bridge

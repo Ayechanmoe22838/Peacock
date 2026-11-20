@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Vendors & Wedding Services – Peacock{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light-subtle border-bottom">
+    <div class="container text-center">
+        <h1 class="display-5 fw-bold font-serif">Vendors & Wedding Services</h1>
+        <p class="text-muted">Master photographers, floral designers, banquet caterers, and charismatic emcees curated for your special day.</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <!-- Category Filter Tabs -->
+    <ul class="nav nav-pills justify-content-center mb-5 gap-2" id="vendorTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active rounded-pill px-4" id="all-tab" data-bs-toggle="pill" data-bs-target="#all-vendors" type="button">All Vendors</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link rounded-pill px-4" id="catering-tab" data-bs-toggle="pill" data-bs-target="#catering-vendors" type="button">Royal Catering Menus</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="vendorTabContent">
+        <!-- All Vendors Tab -->
+        <div class="tab-pane fade show active" id="all-vendors">
+            <div class="row g-4">
+                {% for vendor in vendors %}
+                <div class="col-lg-3 col-md-6">
+                    <div class="peacock-card h-100 d-flex flex-column">
+                        <img src="{{ vendor.image_url or '/static/images/luxury_ballroom.jpg' }}" 
+                             alt="{{ vendor.vendor_name }}" 
+                             class="w-100" 
+                             style="height: 180px; object-fit: cover;">
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <span class="badge bg-warning-subtle text-warning-emphasis small align-self-start mb-2">
+                                {{ vendor.category }}
+                            </span>
+                            <h5 class="h6 fw-bold mb-1">{{ vendor.vendor_name }}</h5>
+                            <p class="text-muted small flex-grow-1 mb-2">{{ vendor.description[:90] }}...</p>
+                            
+                            <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-dark small">{{ "{:,.0f}".format(vendor.price) }} Ks</span>
+                                <small class="text-muted"><i class="bi bi-telephone"></i> {{ vendor.phone }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Catering Menus Tab -->
+        <div class="tab-pane fade" id="catering-vendors">
+            <div class="row g-4">
+                {% for menu in menus %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="peacock-card h-100 d-flex flex-column">
+                        <img src="{{ menu.image_url or '/static/images/banquet_feast.jpg' }}" 
+                             alt="{{ menu.name }}" 
+                             class="w-100" 
+                             style="height: 220px; object-fit: cover;">
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <span class="badge bg-success-subtle text-success-emphasis align-self-start mb-2">{{ menu.category }}</span>
+                            <h4 class="h5 fw-bold mb-2 font-serif">{{ menu.name }}</h4>
+                            <p class="text-muted small mb-3 flex-grow-1">{{ menu.description }}</p>
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                <span class="text-muted small">Portion Price:</span>
+                                <span class="fs-5 fw-bold text-dark">{{ "{:,.0f}".format(menu.price_per_person) }} Ks</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

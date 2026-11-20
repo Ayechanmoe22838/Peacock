@@ -1,0 +1,168 @@
+{% extends "customer/base_customer.html" %}
+
+{% block title %}Booking {{ booking.booking_reference }} – Peacock{% endblock %}
+
+{% block customer_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/customer/bookings">My Bookings</a></li>
+                <li class="breadcrumb-item active">{{ booking.booking_reference }}</li>
+            </ol>
+        </nav>
+        <h1 class="h3 font-serif fw-bold mb-0">Booking Details: {{ booking.booking_reference }}</h1>
+    </div>
+    <div class="d-flex gap-2">
+        {% if booking.booking_status not in ['Cancelled', 'Completed', 'Cancellation Requested'] %}
+        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelModal">
+            <i class="bi bi-x-circle"></i> Request Cancellation
+        </button>
+        {% endif %}
+        <a href="/customer/payments" class="btn btn-peacock btn-sm">
+            <i class="bi bi-credit-card"></i> Make Payment
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Invoice & Service Breakdown -->
+    <div class="col-lg-8">
+        <div class="peacock-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="h6 fw-bold mb-0 font-serif">Event Information</h5>
+                <span class="badge-status-{{ booking.booking_status.lower().replace(' ', '-') }}">
+                    {{ booking.booking_status }}
+                </span>
+            </div>
+
+            <div class="row g-3 bg-light p-3 rounded mb-4">
+                <div class="col-md-6">
+                    <span class="text-muted small d-block">Venue Name</span>
+                    <strong>{{ booking.venue.venue_name }}</strong>
+                    <small class="d-block text-muted">{{ booking.venue.address }}, {{ booking.venue.city }}</small>
+                </div>
+                <div class="col-md-3">
+                    <span class="text-muted small d-block">Date</span>
+                    <strong>{{ booking.event_date.strftime("%B %d, %Y") }}</strong>
+                </div>
+                <div class="col-md-3">
+                    <span class="text-muted small d-block">Time Slot</span>
+                    <strong>{{ booking.start_time.strftime("%I:%M %p") }} - {{ booking.end_time.strftime("%I:%M %p") }}</strong>
+                </div>
+            </div>
+
+            <!-- Cost Breakdown Table -->
+            <h6 class="fw-bold mb-3 font-serif">Financial Breakdown (Myanmar Kyat)</h6>
+            <div class="table-responsive">
+                <table class="table table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service Description</th>
+                            <th class="text-end" style="width: 150px;">Amount (MMK)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Venue Base Rental: <strong>{{ booking.venue.venue_name }}</strong></td>
+                            <td class="text-end fw-semibold">{{ "{:,.0f}".format(booking.venue_cost) }} Ks</td>
+                        </tr>
+                        {% if booking.package %}
+                        <tr>
+                            <td>Wedding Package: <strong>{{ booking.package.package_name }}</strong></td>
+                            <td class="text-end fw-semibold">{{ "{:,.0f}".format(booking.package_cost) }} Ks</td>
+                        </tr>
+                        {% endif %}
+                        {% for bv in booking.booking_vendors %}
+                        <tr>
+                            <td>Selected Vendor: <strong>{{ bv.vendor.vendor_name }}</strong> ({{ bv.vendor.category }})</td>
+                            <td class="text-end fw-semibold">{{ "{:,.0f}".format(bv.price_agreed) }} Ks</td>
+                        </tr>
+                        {% endfor %}
+                        {% for bm in booking.booking_menus %}
+                        <tr>
+                            <td>Catering Menu: <strong>{{ bm.menu.name }}</strong> ({{ bm.quantity }} portions @ {{ "{:,.0f}".format(bm.unit_price) }} Ks)</td>
+                            <td class="text-end fw-semibold">{{ "{:,.0f}".format(bm.total_price) }} Ks</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="table-light">
+                            <td class="fw-bold text-end">Total Booking Cost:</td>
+                            <td class="text-end fw-bold fs-6">{{ "{:,.0f}".format(booking.total_cost) }} Ks</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-end text-success">Verified Paid Amount:</td>
+                            <td class="text-end fw-bold text-success">-{{ "{:,.0f}".format(booking.paid_amount) }} Ks</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td class="fw-bold text-end text-dark">Outstanding Balance:</td>
+                            <td class="text-end fw-bold text-danger fs-6">{{ "{:,.0f}".format(booking.balance_amount) }} Ks</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {% if booking.special_requirements %}
+            <div class="mt-3">
+                <strong class="small d-block text-muted">Special Requirements:</strong>
+                <p class="small mb-0">{{ booking.special_requirements }}</p>
+            </div>
+            {% endif %}
+
+            {% if booking.rejection_reason %}
+            <div class="alert alert-danger small mt-3">
+                <strong>Rejection Reason:</strong> {{ booking.rejection_reason }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Planning Shortcuts -->
+    <div class="col-lg-4">
+        <div class="peacock-card p-4 mb-4">
+            <h6 class="fw-bold mb-3 font-serif">Quick Actions</h6>
+            <div class="d-grid gap-2">
+                <a href="/customer/invitations" class="btn btn-outline-dark btn-sm text-start">
+                    <i class="bi bi-envelope-heart text-warning me-2"></i> Manage Digital Invitation
+                </a>
+                <a href="/customer/seating" class="btn btn-outline-dark btn-sm text-start">
+                    <i class="bi bi-diagram-3 text-info me-2"></i> Seating Planner
+                </a>
+                <a href="/customer/guests" class="btn btn-outline-dark btn-sm text-start">
+                    <i class="bi bi-people text-primary me-2"></i> Guest List ({{ booking.guests|length }})
+                </a>
+                <a href="/customer/budget" class="btn btn-outline-dark btn-sm text-start">
+                    <i class="bi bi-wallet2 text-success me-2"></i> Wedding Budget
+                </a>
+                <a href="/customer/payments" class="btn btn-peacock btn-sm">
+                    <i class="bi bi-credit-card me-2"></i> Submit KBZPay Deposit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancellation Request Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/customer/bookings/{{ booking.booking_id }}/cancel">
+                <div class="modal-header">
+                    <h5 class="modal-title font-serif">Request Booking Cancellation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">Please state the reason for requesting cancellation. An administrator will review your request according to the cancellation policy.</p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Cancellation Reason *</label>
+                        <textarea name="reason" class="form-control" rows="3" required placeholder="Please explain why you need to cancel..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Confirm Cancellation Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

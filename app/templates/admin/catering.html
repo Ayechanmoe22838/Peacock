@@ -1,0 +1,142 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Catering Menus – Peacock Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Catering & Banquet Menus</h1>
+        <p class="text-muted small mb-0">Configure food items, set portion prices, and manage gourmet menu options (12 authentic dishes available).</p>
+    </div>
+    <button type="button" class="btn btn-peacock btn-sm" data-bs-toggle="modal" data-bs-target="#addMenuModal">
+        <i class="bi bi-plus-circle"></i> Add Menu Item
+    </button>
+</div>
+
+<div class="row g-4">
+    {% for menu in menus %}
+    <div class="col-lg-4 col-md-6">
+        <div class="peacock-card bg-white h-100 d-flex flex-column overflow-hidden">
+            <div class="position-relative">
+                <img src="{{ menu.image_url or '/static/images/banquet_feast.jpg' }}" alt="{{ menu.name }}" class="w-100" style="height: 180px; object-fit: cover;">
+                <span class="position-absolute top-0 end-0 m-2 badge {% if menu.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                    {% if menu.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+            </div>
+            <div class="p-3 d-flex flex-column flex-grow-1">
+                <span class="badge bg-success-subtle text-success-emphasis align-self-start mb-2">{{ menu.category }}</span>
+                <h5 class="h6 fw-bold mb-1 font-serif">{{ menu.name }}</h5>
+                <p class="text-muted small flex-grow-1">{{ menu.description }}</p>
+                
+                <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-dark fs-6">{{ "{:,.0f}".format(menu.price_per_person) }} Ks</span>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" data-bs-toggle="modal" data-bs-target="#editMenuModal{{ menu.menu_id }}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="POST" action="/admin/catering/{{ menu.menu_id }}/toggle" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Toggle Status">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="/admin/catering/{{ menu.menu_id }}/delete" class="d-inline" onsubmit="return confirm('Delete or deactivate this menu item?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal for {{ menu.name }} -->
+    <div class="modal fade" id="editMenuModal{{ menu.menu_id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/admin/catering/{{ menu.menu_id }}/edit">
+                    <div class="modal-header">
+                        <h5 class="modal-title font-serif">Edit Menu Item</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Menu Name *</label>
+                            <input type="text" name="name" class="form-control" required value="{{ menu.name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Food Category *</label>
+                            <select name="category" class="form-select" required>
+                                <option value="Traditional Myanmar" {% if menu.category == 'Traditional Myanmar' %}selected{% endif %}>Traditional Myanmar</option>
+                                <option value="Main Course" {% if menu.category == 'Main Course' %}selected{% endif %}>Main Course</option>
+                                <option value="Appetizer" {% if menu.category == 'Appetizer' %}selected{% endif %}>Appetizer</option>
+                                <option value="Soup" {% if menu.category == 'Soup' %}selected{% endif %}>Soup</option>
+                                <option value="Dessert" {% if menu.category == 'Dessert' %}selected{% endif %}>Dessert</option>
+                                <option value="Beverage" {% if menu.category == 'Beverage' %}selected{% endif %}>Beverage</option>
+                                <option value="Buffet Package" {% if menu.category == 'Buffet Package' %}selected{% endif %}>Buffet Package</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Price Per Person (MMK) *</label>
+                            <input type="number" name="price_per_person" class="form-control" required step="500" value="{{ menu.price_per_person }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Description</label>
+                            <textarea name="description" class="form-control" rows="3">{{ menu.description }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-peacock">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Add Menu Modal -->
+<div class="modal fade" id="addMenuModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/admin/catering/add">
+                <div class="modal-header">
+                    <h5 class="modal-title font-serif">Add Catering Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Menu Name *</label>
+                        <input type="text" name="name" class="form-control" required placeholder="e.g. Traditional Tea Leaf Rice & Duck">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Food Category *</label>
+                        <select name="category" class="form-select" required>
+                            <option value="Main Course">Main Course</option>
+                            <option value="Traditional Myanmar">Traditional Myanmar</option>
+                            <option value="Appetizer">Appetizer</option>
+                            <option value="Soup">Soup</option>
+                            <option value="Dessert">Dessert</option>
+                            <option value="Beverage">Beverage</option>
+                            <option value="Buffet Package">Buffet Package</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Price Per Person (MMK) *</label>
+                        <input type="number" name="price_per_person" class="form-control" required step="500" placeholder="e.g. 20000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Description</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="Ingredients, flavor profile..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-peacock">Create Menu Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

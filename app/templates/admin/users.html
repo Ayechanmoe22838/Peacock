@@ -1,0 +1,70 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}User Management – Peacock Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 font-serif fw-bold mb-1">Customer Account Management</h1>
+        <p class="text-muted small mb-0">View registered wedding customer accounts, contact information, and access status.</p>
+    </div>
+</div>
+
+<div class="peacock-card overflow-hidden bg-white">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="table-light">
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Email Address</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="fw-semibold">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-warning text-white fw-bold" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">
+                                {{ u.full_name[0] }}
+                            </div>
+                            <span>{{ u.full_name }}</span>
+                        </div>
+                    </td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.plain_phone }}</td>
+                    <td><small class="text-muted">{{ u.address or 'N/A' }}</small></td>
+                    <td>
+                        <span class="badge {% if u.role == 'admin' %}bg-dark{% else %}bg-light text-dark border{% endif %}">
+                            {{ u.role }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="badge bg-success-subtle text-success border border-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger">Suspended</span>
+                        {% endif %}
+                    </td>
+                    <td><small class="text-muted">{{ u.created_at.strftime("%b %d, %Y") }}</small></td>
+                    <td class="text-end">
+                        {% if u.role != 'admin' %}
+                        <form method="POST" action="/admin/users/{{ u.user_id }}/toggle" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary p-1 px-2">
+                                {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
